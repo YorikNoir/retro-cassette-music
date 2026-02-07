@@ -22,8 +22,32 @@
             font-size: 9pt;
             line-height: 1.4;
             color: #2d3748;
-            background: white;
+            background: #f8f9fa;
             padding: 0.8cm 1cm;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        @media screen and (min-width: 1200px) {
+            body {
+                padding: 1.5cm 2cm;
+            }
+            
+            h1 {
+                font-size: 24pt;
+            }
+            
+            h2 {
+                font-size: 14pt;
+            }
+            
+            .retro-header {
+                font-size: 16pt;
+            }
+            
+            body > div:first-of-type {
+                padding: 1.5cm;
+            }
         }
         
         h1 {
@@ -84,9 +108,25 @@
         
         .grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr;
             gap: 0.5cm;
             margin-bottom: 0.3cm;
+        }
+        
+        @media screen and (min-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            body > div:first-of-type {
+                padding: 1.2cm;
+            }
+        }
+        
+        @media screen and (min-width: 1200px) {
+            .grid {
+                grid-template-columns: 1fr 1fr 1fr;
+            }
         }
         
         .box {
@@ -94,6 +134,14 @@
             border: 2px solid #667eea;
             padding: 0.3cm;
             border-radius: 6px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        @media screen and (min-width: 768px) {
+            .box:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+            }
         }
         
         .box h3 {
@@ -139,7 +187,7 @@
         }
         
         .home-layout {
-            background: #f8f9fa;
+            background: #fafbfc;
             border: 3px solid #667eea;
             padding: 0.5cm;
             border-radius: 8px;
@@ -257,15 +305,46 @@
         @media print {
             body {
                 padding: 0;
+                max-width: none;
+                background: white;
+            }
+            
+            body > div:first-of-type {
+                box-shadow: none;
+                padding: 0;
             }
             
             .no-print {
                 display: none;
             }
+            
+            .grid {
+                grid-template-columns: 1fr 1fr !important;
+            }
+        }
+        
+        @media screen and (max-width: 767px) {
+            body {
+                font-size: 10pt;
+                padding: 0.5cm;
+            }
+            
+            h1 {
+                font-size: 18pt;
+            }
+            
+            h2 {
+                font-size: 11pt;
+            }
+            
+            .retro-header {
+                font-size: 12pt;
+            }
         }
     </style>
 </head>
 <body>
+    <div style="background: white; padding: 1cm; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
     <div class="retro-header">♪♫ SMART HOME AI MUSIC GENERATOR ♫♪</div>
     <h1>Home Assistant Integration Guide</h1>
     
@@ -781,6 +860,7 @@ party_mode:
     - rock_party
     - chill_lounge
         </div>
+    </div>
     </div>
     
     <div class="footer">
