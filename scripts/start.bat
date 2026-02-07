@@ -48,9 +48,22 @@ echo ========================================
 echo  Starting Django Development Server
 echo ========================================
 echo.
-echo Server will be available at: http://localhost:7777
-if "%DEBUG_MODE%"=="True" echo [DEBUG] Verbose logging enabled
+
+REM Get local IP address
+for /f "tokens=2 delims=: " %%a in ('ipconfig ^| find "IPv4"') do (
+    set LOCAL_IP=%%a
+    goto :found_ip
+)
+:found_ip
+
+echo Server running on local network interfaces:
+echo   Local Access:       http://localhost:7777
+echo   Network Access:     http://%LOCAL_IP%:7777
 echo.
+echo Note: Update .env ALLOWED_HOSTS if connection is refused
+echo       ALLOWED_HOSTS should include your local IP or use: *
+echo.
+if "%DEBUG_MODE%"=="True" echo [DEBUG] Verbose logging enabled
 echo Background tasks will run in server process (no separate worker needed)
 echo.
 echo Press Ctrl+C to stop the server
@@ -58,7 +71,7 @@ echo.
 
 if "%DEBUG_MODE%"=="True" (
     set DJANGO_DEBUG_MODE=1
-    python manage.py runserver 7777 --verbosity 2
+    python manage.py runserver 0.0.0.0:7777 --verbosity 2
 ) else (
-    python manage.py runserver 7777
+    python manage.py runserver 0.0.0.0:7777
 )

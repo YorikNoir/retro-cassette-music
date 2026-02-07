@@ -48,7 +48,24 @@ echo "========================================="
 echo " Starting Django Development Server"
 echo "========================================="
 echo ""
-echo "Server will be available at: http://localhost:7777"
+
+# Get local IP address
+LOCAL_IP=$(hostname -I | awk '{print $1}')
+if [ -z "$LOCAL_IP" ]; then
+    # Fallback for macOS
+    LOCAL_IP=$(ifconfig | grep "inet " | grep -v 127.0.0.1 | awk '{print $2}' | head -1)
+fi
+
+echo "Server running on local network interfaces:"
+echo "   Local Access:       http://localhost:7777"
+if [ -n "$LOCAL_IP" ]; then
+    echo "   Network Access:     http://$LOCAL_IP:7777"
+fi
+echo ""
+echo "Note: Update .env ALLOWED_HOSTS if connection is refused"
+echo "      ALLOWED_HOSTS should include your local IP or use: *"
+echo ""
+
 if [ "$DEBUG_MODE" = true ]; then
     echo "[DEBUG] Verbose logging enabled"
 fi
@@ -61,7 +78,7 @@ echo ""
 # Start Django server
 if [ "$DEBUG_MODE" = true ]; then
     export DJANGO_DEBUG_MODE=1
-    python manage.py runserver 7777 --verbosity 2
+    python manage.py runserver 0.0.0.0:7777 --verbosity 2
 else
-    python manage.py runserver 7777
+    python manage.py runserver 0.0.0.0:7777
 fi
