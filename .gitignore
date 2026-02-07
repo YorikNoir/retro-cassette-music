@@ -16,10 +16,12 @@ db.sqlite3
 db.sqlite3-journal
 /media
 /staticfiles
+celery.pid
 
 # Environment
 .env
 .env.local
+.env.*.local
 
 # IDE
 .vscode/
@@ -35,10 +37,20 @@ Thumbs.db
 # AI Models (should be downloaded separately)
 checkpoints/
 !checkpoints/README.md
+!checkpoints/config.json
 
-# User uploads
+# User uploads - NEVER commit user data!
+media/
+!media/.gitkeep
 media/songs/
 media/covers/
+media/audio/
+uploads/
+
+# User database - NEVER commit!
+*.db
+*.sqlite
+*.sqlite3
 
 # Testing
 .coverage
@@ -50,3 +62,8 @@ htmlcov/
 dist/
 build/
 *.egg-info/
+
+# Temporary files
+*.tmp
+*.temp
+*.cache
