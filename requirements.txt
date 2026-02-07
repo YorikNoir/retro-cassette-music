@@ -1,0 +1,38 @@
+# Django Core
+Django==5.0.1
+djangorestframework==3.14.0
+django-cors-headers==4.3.1
+django-environ==0.11.2
+
+# Authentication & Security
+djangorestframework-simplejwt==5.3.1
+cryptography==42.0.1
+django-encrypted-model-fields==0.6.5
+
+# Database
+psycopg2-binary==2.9.9
+
+# AI/ML Dependencies (from parent project)
+torch>=2.0.0
+torchaudio>=2.0.0
+transformers>=4.36.0
+safetensors>=0.4.0
+accelerate>=0.25.0
+soundfile>=0.12.1
+librosa>=0.10.1
+numpy>=1.24.0
+
+# LLM
+openai>=1.10.0
+
+# Utilities
+Pillow>=10.0.0
+python-dotenv==1.0.0
+celery==5.3.4
+redis==5.0.1
+
+# Development
+black==24.1.1
+flake8==7.0.0
+pytest==7.4.4
+pytest-django==4.7.0

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retro Cassette Music Generator</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/cassette.css">
+</head>
+<body>
+    <!-- Header / Navigation -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <div class="cassette-icon">
+                    <div class="cassette-reel left"></div>
+                    <div class="cassette-reel right"></div>
+                </div>
+                <h1>Retro Cassette</h1>
+            </div>
+            <nav class="nav" id="mainNav">
+                <!-- Will be populated by JS based on auth state -->
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Login/Register Screen -->
+        <section id="authScreen" class="screen">
+            <div class="auth-container">
+                <div class="cassette-player-bg">
+                    <h2 class="glitch" data-text="WELCOME">WELCOME</h2>
+                    <p class="tagline">Create AI-Powered Music with Retro Vibes</p>
+                    
+                    <div class="auth-tabs">
+                        <button class="tab-btn active" data-tab="login">LOGIN</button>
+                        <button class="tab-btn" data-tab="register">REGISTER</button>
+                    </div>
+
+                    <div class="tab-content active" id="loginForm">
+                        <form id="loginFormElement">
+                            <div class="form-group">
+                                <label>Username</label>
+                                <input type="text" name="username" required class="retro-input">
+                            </div>
+                            <div class="form-group">
+                                <label>Password</label>
+                                <input type="password" name="password" required class="retro-input">
+                            </div>
+                            <button type="submit" class="retro-btn primary">LOGIN</button>
+                        </form>
+                    </div>
+
+                    <div class="tab-content" id="registerForm">
+                        <form id="registerFormElement">
+                            <div class="form-group">
+                                <label>Username</label>
+                                <input type="text" name="username" required class="retro-input">
+                            </div>
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" name="email" required class="retro-input">
+                            </div>
+                            <div class="form-group">
+                                <label>Password</label>
+                                <input type="password" name="password" required class="retro-input">
+                            </div>
+                            <div class="form-group">
+                                <label>Confirm Password</label>
+                                <input type="password" name="password_confirm" required class="retro-input">
+                            </div>
+                            <button type="submit" class="retro-btn primary">REGISTER</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dashboard Screen -->
+        <section id="dashboardScreen" class="screen hidden">
+            <div class="container">
+                <div class="dashboard-header">
+                    <h2>Your Cassette Collection</h2>
+                    <button class="retro-btn primary" id="createSongBtn">+ CREATE NEW SONG</button>
+                </div>
+
+                <div class="filters">
+                    <input type="text" id="searchInput" placeholder="Search songs..." class="retro-input">
+                    <select id="genreFilter" class="retro-select">
+                        <option value="">All Genres</option>
+                    </select>
+                    <select id="sortBy" class="retro-select">
+                        <option value="-created_at">Newest First</option>
+                        <option value="created_at">Oldest First</option>
+                        <option value="-upvotes">Most Popular</option>
+                        <option value="title">Title A-Z</option>
+                    </select>
+                    <div class="view-toggle">
+                        <button class="view-btn active" data-view="my">My Songs</button>
+                        <button class="view-btn" data-view="public">Discover</button>
+                    </div>
+                </div>
+
+                <div class="stats-panel" id="statsPanel">
+                    <!-- Stats will be loaded here -->
+                </div>
+
+                <div class="songs-grid" id="songsGrid">
+                    <!-- Songs will be loaded here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Create Song Screen -->
+        <section id="createScreen" class="screen hidden">
+            <div class="container">
+                <div class="create-panel">
+                    <div class="panel-header">
+                        <h2>Create New Song</h2>
+                        <button class="retro-btn" id="backToDashboard">← BACK</button>
+                    </div>
+
+                    <form id="createSongForm" class="create-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Song Title</label>
+                                <input type="text" name="title" required class="retro-input" placeholder="Enter song title...">
+                            </div>
+                            <div class="form-group">
+                                <label>Genre</label>
+                                <select name="genre" class="retro-select" required>
+                                    <option value="pop">Pop</option>
+                                    <option value="rock">Rock</option>
+                                    <option value="jazz">Jazz</option>
+                                    <option value="electronic">Electronic</option>
+                                    <option value="hiphop">Hip Hop</option>
+                                    <option value="classical">Classical</option>
+                                    <option value="ambient">Ambient</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Mood</label>
+                                <select name="mood" class="retro-select">
+                                    <option value="">Select mood...</option>
+                                    <option value="happy">Happy</option>
+                                    <option value="sad">Sad</option>
+                                    <option value="energetic">Energetic</option>
+                                    <option value="calm">Calm</option>
+                                    <option value="romantic">Romantic</option>
+                                    <option value="melancholic">Melancholic</option>
+                                    <option value="mysterious">Mysterious</option>
+                                    <option value="uplifting">Uplifting</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Duration (seconds)</label>
+                                <input type="number" name="duration" min="10" max="180" value="30" class="retro-input" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>
+                                Lyrics 
+                                <button type="button" class="retro-btn small" id="generateLyricsBtn">🤖 Generate with AI</button>
+                            </label>
+                            <textarea name="lyrics" rows="10" class="retro-textarea" placeholder="Enter lyrics or generate with AI..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Description (optional)</label>
+                            <textarea name="description" rows="3" class="retro-textarea" placeholder="Add a description..."></textarea>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="retro-btn primary large">🎵 GENERATE SONG</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Song Player Modal -->
+        <div id="playerModal" class="modal hidden">
+            <div class="modal-content cassette-player">
+                <button class="close-btn" id="closePlayer">×</button>
+                <div class="cassette-display" id="playerDisplay">
+                    <!-- Song details will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/auth.js"></script>
+    <script src="/static/js/songs.js"></script>
+    <script src="/static/js/player.js"></script>
+    <script src="/static/js/main.js"></script>
+</body>
+</html>
