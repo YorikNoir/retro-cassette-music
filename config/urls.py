@@ -6,11 +6,17 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
+from django.http import JsonResponse
+
+def api_status(request):
+    """Simple API status endpoint for health checks"""
+    return JsonResponse({'status': 'ok', 'message': 'API is running'})
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     
     # API endpoints
+    path('api/', api_status, name='api-status'),
     path('api/auth/', include('apps.accounts.urls')),
     path('api/songs/', include('apps.songs.urls')),
     path('api/library/', include('apps.library.urls')),
