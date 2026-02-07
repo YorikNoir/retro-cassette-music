@@ -1,103 +1,186 @@
-# Retro Cassette Music Generator
+# Smart Home AI Music Generator
 
-A retro-themed music generation platform powered by ACE-Step AI, featuring a nostalgic cassette player interface.
+> **A production-ready AI music generation platform designed for smart home integration, featuring multi-provider LLM support, voice command capabilities, and room-based playlist management.**
 
-📄 **[Technical Setup Documentation](https://yoriknoir.github.io/retro-cassette-music/Technical_Setup_Documentation.html)** - Quick reference guide for developers
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Django 5.0](https://img.shields.io/badge/django-5.0+-green.svg)](https://www.djangoproject.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## Features
+📄 **[Technical Documentation](Technical_Setup_Documentation.html)** | 🏠 **[Home Assistant Integration](#home-assistant-integration)** | 🎵 **[Live Demo](http://localhost:8000)**
 
-- 🎵 **AI Music Generation**: Create songs using ACE-Step v1.5
-- 📝 **Flexible Lyrics Generation**: Choose from Local LLM (Ollama), OpenAI, Comet API, or custom providers
-- 🤖 **Privacy-First LLM**: Run Llama 3.2 locally - no API keys required
-- 🎨 **Retro Cassette Theme**: Nostalgic 80s/90s cassette player UI
-- 👤 **User Accounts**: Personalized music library per user
-- ⭐ **Social Features**: Upvote, downvote, and publish your creations
-- 🔍 **Filtering & Search**: Find songs by genre, mood, duration, and more
-- 🔒 **Secure**: Encrypted API key storage with Fernet encryption
+---
 
-## Tech Stack
+## 🎯 Project Overview
 
-- **Backend**: Django 5.0+
-- **Frontend**: Vanilla JavaScript, HTML5, CSS3
-- **AI Models**: ACE-Step v1.5, Qwen3 Embedding
-- **Database**: SQLite (development) / PostgreSQL (production)
-- **Authentication**: Django Auth + JWT
+This application is a **full-stack AI music generation platform** built with Django and PyTorch, designed to integrate seamlessly with **Home Assistant smart home systems**. It enables users to generate personalized music through voice commands, manage room-specific playlists, and stream AI-generated songs directly to smart speakers throughout their home.
 
-## Quick Start
+### **Key Differentiators**
+
+- **Smart Home Ready**: RESTful API endpoints for Home Assistant automation and voice command integration
+- **Multi-Provider LLM Architecture**: Flexible lyrics generation supporting Local (Ollama), OpenAI, Comet API, and custom endpoints
+- **Privacy-First Design**: Full offline operation with local LLM option (Llama 3.2) - no external API calls required
+- **Production-Grade Security**: Fernet encryption for API keys, JWT authentication, CSRF protection
+- **Scalable Task Processing**: Celery + Redis for async music generation with concurrent task management
+- **Retro-Modern UX**: Nostalgic cassette player interface optimized for both web and smart mirror displays
+
+---
+
+## 🏗️ Architecture & Tech Stack
+
+### **Backend**
+- **Framework**: Django 5.0.1 + Django REST Framework 3.14.0
+- **Task Queue**: Celery 5.3.4 with Redis broker for async processing
+- **AI/ML**: PyTorch 2.10, Transformers 5.1, ACE-Step v1.5 (music generation), Qwen3 Embedding
+- **Authentication**: JWT tokens (djangorestframework-simplejwt) + Home Assistant long-lived token support
+- **Database**: SQLite (development), PostgreSQL-ready (production scaling)
+- **Security**: Fernet symmetric encryption (django-encrypted-model-fields)
+
+### **Frontend**
+- **Stack**: Vanilla JavaScript (ES6+), HTML5, CSS3 - zero framework dependencies
+- **UI/UX**: Responsive design with retro cassette theme + smart mirror interface
+- **Features**: Real-time updates, audio playback, drag-drop playlist management
+
+### **AI Models**
+- **Music Generation**: ACE-Step v1.5 Turbo (Transformer-based diffusion, 5Hz latent → 44.1kHz audio)
+- **Lyrics Generation**: Multi-provider support (Ollama/Llama 3.2, OpenAI GPT-3.5/4, Claude Sonnet 4)
+- **Embeddings**: Qwen3-Embedding-0.6B for semantic music understanding
+
+### **Infrastructure**
+- **Deployment**: Gunicorn + Nginx reverse proxy, systemd services
+- **Caching**: Redis (song metadata, user sessions)
+- **File Storage**: Local media storage with S3-compatible backend support
+- **Monitoring**: Celery Flower for task monitoring, Django Debug Toolbar
+
+---
+
+## 🏠 Home Assistant Integration
+
+### **Voice Command Workflow**
+```
+User: "Hey Google, create a relaxing jazz song for the living room"
+  ↓
+Home Assistant captures intent → Parse voice command
+  ↓
+POST /api/ha/quick-song {voice_command, room_context}
+  ↓
+Background Celery task → LLM lyrics + ACE-Step music generation
+  ↓
+Poll /api/ha/song-status/{task_id} → Complete (15-30s)
+  ↓
+TTS announcement + Stream to room speakers → Add to room playlist
+```
+
+### **API Endpoints**
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/api/ha/generate-song` | POST | Generate song with specific parameters |
+| `/api/ha/quick-song` | POST | AI-parsed voice command generation |
+| `/api/ha/song-status/{id}` | GET | Poll generation progress |
+| `/api/ha/playlists/{room_id}` | GET | Room-specific playlists |
+| `/api/ha/rooms` | GET | List configured rooms/zones |
+| `/api/ha/party-mode` | POST | Multi-room synchronized playback |
+
+### **Room-Based Playlists**
+- Separate playlists per room/zone (Living Room, Kitchen, Bedroom)
+- Guest access control for temporary song creation
+- Party mode: Multi-room synchronized playlist across smart speakers
+- Context-aware defaults (room learns preferred genres/moods)
+
+---
+
+## ✨ Core Features
+
+## ✨ Core Features
+
+### **AI Music Generation**
+- 🎵 **ACE-Step v1.5**: State-of-the-art Transformer-based diffusion model for high-quality music synthesis
+- ⏱️ **15-30s Generation**: GPU-accelerated inference (RTX 3090), CPU fallback supported
+- 🎼 **Multi-Genre Support**: Rock, Pop, Jazz, Electronic, Classical, Hip-Hop, Country, Ambient
+- 🎹 **Parametric Control**: BPM, key signature, mood (uplifting, relaxing, energetic, melancholic)
+
+### **Flexible Lyrics Generation**
+- **4 Provider Options**: Local (Ollama), OpenAI, Comet API (Claude), Custom API
+- **Privacy Mode**: Llama 3.2 3B runs entirely offline - zero external API calls
+- **Model Selection**: Choose GPT-3.5/4, Claude Sonnet 4/Opus 4, or any OpenAI-compatible endpoint
+- **Encrypted Storage**: API keys protected with Fernet (AES-128-CBC) encryption at rest
+
+### **User Management & Social**
+- 👤 **Multi-User Accounts**: Separate libraries, preferences, and LLM provider settings per user
+- ⭐ **Voting System**: Upvote/downvote songs, discover community favorites
+- 📢 **Publishing**: Private-by-default with optional public sharing
+- 📊 **Statistics**: Track songs created, published count, community engagement
+
+### **Smart Home Integration**
+- 🏠 **Home Assistant API**: RESTful endpoints for automation workflows
+- 🗣️ **Voice Commands**: Parse natural language to song parameters ("relaxing jazz")
+- 🔊 **Room Zones**: Per-room playlists with independent speaker control
+- 🎉 **Party Mode**: Synchronized multi-room playback across smart home
+
+### **Developer-Friendly**
+- 🔧 **One-Command Setup**: `setup.bat` / `setup.sh` handles venv, dependencies, migrations
+- 📚 **Comprehensive Docs**: Technical architecture, API reference, deployment guide
+- 🔐 **Security Best Practices**: CSRF, CORS, JWT, encrypted fields, input validation
+- 🧪 **Testable**: Django test suite, API testing with Postman collections
+
+---
+
+## 🚀 Quick Start
 
 ### Prerequisites
+- **Python 3.10+** (tested on 3.10, 3.11)
+- **16GB+ RAM** (8GB minimum for CPU-only inference)
+- **GPU with CUDA support** (optional, recommended for 10x faster generation)
+- **Redis 5.0+** (for Celery task queue)
 
-- Python 3.10+
-- GPU with CUDA support (recommended for faster generation)
-- 16GB+ RAM
-
-### Installation & Running
+### One-Command Installation
 
 **Windows:**
-```bash
+```powershell
+# Clone repository
 git clone https://github.com/YorikNoir/retro-cassette-music.git
 cd retro-cassette-music
-setup.bat    # One-time setup: venv, dependencies, migrations
-start.bat    # Start Django + Celery (opens 2 windows)
+
+# Setup (creates venv, installs deps, runs migrations)
+setup.bat
+
+# Start Django + Celery (opens 2 terminal windows)
+start.bat
+
+# Visit http://localhost:8000
 ```
 
 **Linux/Mac:**
 ```bash
+# Clone repository
 git clone https://github.com/YorikNoir/retro-cassette-music.git
 cd retro-cassette-music
+
+# Setup
 chmod +x setup.sh start.sh stop.sh
-./setup.sh   # One-time setup: venv, dependencies, migrations
-./start.sh   # Start Django + Celery (background process)
+./setup.sh
+
+# Start (background processes)
+./start.sh
+
+# Visit http://localhost:8000
 ```
 
-**Stop all services:**
-- Windows: `stop.bat` or close the windows
-- Linux/Mac: `./stop.sh` or Ctrl+C in the terminal
-
-**Visit:** [http://localhost:8000](http://localhost:8000)
-
-## LLM Provider Options
-
-You can choose from multiple LLM providers for lyrics generation:
-
-### 1. Local LLM (Ollama) - Recommended for Privacy
-
-**Pros:** 
-- 🔒 Complete privacy - runs entirely on your machine
-- 💰 No API costs
-- ⚡ Fast response times after initial download
-- 🌐 Works offline
-
-**Cons:**
-- 📦 Requires ~2-7GB disk space per model
-- 💻 Uses CPU/GPU resources
-- 📥 Initial model download required
-
-**Installation:**
+### Optional: Install Local LLM (Privacy Mode)
 
 ```bash
 # Windows
 install_local_llm.bat
 
-# Linux/Mac
+# Linux/Mac  
 chmod +x install_local_llm.sh
 ./install_local_llm.sh
 ```
 
-**Available Models:**
-- `llama3.2:3b` (2GB) - Default, fast and efficient
-- `mistral` (4GB) - Better creative writing
-- `phi3` (2.3GB) - Microsoft's efficient model
+Downloads Ollama + Llama 3.2 3B (~2GB) for offline lyrics generation.
 
-### 2. OpenAI API
+---
 
-**Pros:**
-- 🎯 High-quality outputs (GPT-4, GPT-3.5)
-- 🚀 No local resources needed
-- 📝 Excellent at creative writing
-
-**Cons:**
-- 💳 Pay-per-use API costs
+## 💡 LLM Provider Comparison
 - 🌐 Requires internet connection
 - 🔐 Data sent to OpenAI servers
 
