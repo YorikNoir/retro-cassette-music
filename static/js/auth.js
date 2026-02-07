@@ -70,7 +70,31 @@ class Auth {
         const password = formData.get('password');
         const password_confirm = formData.get('password_confirm');
 
+        if (window.debug) {
+            window.debug.log('[REGISTER] Form data collected:', {
+                username,
+                email,
+                passwordLength: password ? password.length : 0,
+                passwordConfirmLength: password_confirm ? password_confirm.length : 0,
+                passwordMatch: password === password_confirm
+            });
+        }
+
+        // Client-side validation
+        if (username.length < 3) {
+            showToast('Username must be at least 3 characters', 'error');
+            return;
+        }
+
+        if (password.length < 8) {
+            showToast('Password must be at least 8 characters', 'error');
+            return;
+        }
+
         if (password !== password_confirm) {
+            if (window.debug) {
+                window.debug.error('[REGISTER] Passwords do not match');
+            }
             showToast('Passwords do not match', 'error');
             return;
         }
@@ -78,13 +102,28 @@ class Auth {
         try {
             showLoading(form.querySelector('button[type="submit"]'), true);
             
+            if (window.debug) {
+                window.debug.log('[REGISTER] Sending registration request...');
+            }
+            
             await api.register(username, email, password, password_confirm);
+            
+            if (window.debug) {
+                window.debug.log('[REGISTER] Registration successful!');
+            }
             
             showToast('Registration successful!', 'success');
             
             // Load dashboard
             window.location.reload();
         } catch (error) {
+            if (window.debug) {
+                window.debug.error('[REGISTER] Registration failed:', error);
+                window.debug.error('[REGISTER] Error details:', {
+                    message: error.message,
+                    stack: error.stack
+                });
+            }
             showToast(error.message || 'Registration failed', 'error');
         } finally {
             showLoading(form.querySelector('button[type="submit"]'), false);

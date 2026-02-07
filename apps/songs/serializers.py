@@ -41,6 +41,10 @@ class SongSerializer(serializers.ModelSerializer):
 class SongCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating songs."""
     
+    lyrics = serializers.CharField(required=False, allow_blank=True)
+    description = serializers.CharField(required=False, allow_blank=True)
+    mood = serializers.CharField(required=False, allow_blank=True)
+    
     class Meta:
         model = Song
         fields = [
@@ -50,6 +54,9 @@ class SongCreateSerializer(serializers.ModelSerializer):
     
     def create(self, validated_data):
         user = self.context['request'].user
+        # Set empty lyrics to empty string if not provided
+        if 'lyrics' not in validated_data:
+            validated_data['lyrics'] = ''
         song = Song.objects.create(user=user, **validated_data)
         user.increment_song_count()
         return song

@@ -228,6 +228,7 @@ class SongsManager {
         const title = form.querySelector('[name="title"]').value;
         const genre = form.querySelector('[name="genre"]').value;
         const mood = form.querySelector('[name="mood"]').value;
+        const instructions = form.querySelector('[name="lyrics_instructions"]').value;
         const lyricsTextarea = form.querySelector('[name="lyrics"]');
         const btn = document.getElementById('generateLyricsBtn');
 
@@ -241,15 +242,26 @@ class SongsManager {
         try {
             showLoading(btn, true);
             
-            const result = await api.generateLyrics(prompt);
+            if (window.debug) {
+                window.debug.log('[LYRICS] Sending request:', { prompt, instructions });
+            }
             
-            if (result.status === 'success') {
+            const result = await api.generateLyrics(prompt, instructions);
+            
+            if (window.debug) {
+                window.debug.log('[LYRICS] Received response:', result);
+            }
+            
+            if (result && result.status === 'success' && result.lyrics) {
                 lyricsTextarea.value = result.lyrics;
                 showToast('Lyrics generated successfully!', 'success');
             } else {
-                throw new Error(result.message);
+                throw new Error(result?.message || 'No lyrics returned');
             }
         } catch (error) {
+            if (window.debug) {
+                window.debug.error('[LYRICS] Error:', error);
+            }
             showToast(error.message || 'Failed to generate lyrics', 'error');
         } finally {
             showLoading(btn, false);

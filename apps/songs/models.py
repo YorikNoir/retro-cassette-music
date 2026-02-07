@@ -51,7 +51,7 @@ class Song(models.Model):
     
     # Song metadata
     title = models.CharField(max_length=200)
-    lyrics = models.TextField()
+    lyrics = models.TextField(blank=True)
     description = models.TextField(blank=True)
     
     # Generation parameters

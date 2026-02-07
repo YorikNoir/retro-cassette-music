@@ -162,6 +162,13 @@ EMBEDDING_MODEL = env('EMBEDDING_MODEL', default='Qwen3-Embedding-0.6B')
 USE_GPU = env.bool('USE_GPU', default=True)
 CUDA_VISIBLE_DEVICES = env('CUDA_VISIBLE_DEVICES', default='0')
 
+# LLM API Settings
+LLM_PROVIDER = env('LLM_PROVIDER', default='local')  # openai, comet, or local
+OPENAI_API_KEY = env('OPENAI_API_KEY', default=None)
+COMET_API_KEY = env('COMET_API_KEY', default=None)
+# OpenAI client appends /chat/completions, so base URL should end in /v1
+COMET_API_BASE_URL = env('COMET_API_BASE_URL', default='https://api.cometapi.com/v1')
+
 # Encryption for API keys
 ENCRYPTION_KEY = env('ENCRYPTION_KEY', default=None)
 
@@ -170,13 +177,9 @@ ENCRYPTION_KEY = env('ENCRYPTION_KEY', default=None)
 # Development default key (CHANGE IN PRODUCTION!)
 FIELD_ENCRYPTION_KEY = env('ENCRYPTION_KEY', default='8xyRCz-6DvW4H7nL9qN2Y3mP5tB6uJ4kE1sA7dF8gH0=')
 
-# Celery Configuration
-CELERY_BROKER_URL = env('CELERY_BROKER_URL', default='redis://localhost:6379/0')
-CELERY_RESULT_BACKEND = env('CELERY_RESULT_BACKEND', default='redis://localhost:6379/0')
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = TIME_ZONE
+# Background Task Configuration
+# Using simple threading for async tasks (no external services needed)
+MAX_CONCURRENT_TASKS = env.int('MAX_CONCURRENT_TASKS', default=3)
 
 # File Upload Settings
 MAX_UPLOAD_SIZE = env.int('MAX_UPLOAD_SIZE', default=10485760)  # 10MB

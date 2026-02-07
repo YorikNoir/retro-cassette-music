@@ -23,6 +23,43 @@ class App {
         }
 
         this.updateNav();
+        this.initSettingsModal();
+    }
+
+    initSettingsModal() {
+        // Settings modal event listeners
+        const closeSettings = document.getElementById('closeSettings');
+        const cancelSettings = document.getElementById('cancelSettingsBtn');
+        const saveSettings = document.getElementById('saveSettingsBtn');
+        const providerSelect = document.getElementById('providerSelect');
+        
+        if (closeSettings) {
+            closeSettings.addEventListener('click', () => this.hideSettings());
+        }
+        
+        if (cancelSettings) {
+            cancelSettings.addEventListener('click', () => this.hideSettings());
+        }
+        
+        if (saveSettings) {
+            saveSettings.addEventListener('click', () => this.saveSettings());
+        }
+        
+        if (providerSelect) {
+            providerSelect.addEventListener('change', (e) => {
+                this.updateProviderUI(e.target.value);
+            });
+        }
+        
+        // Close modal when clicking outside
+        const modal = document.getElementById('settingsModal');
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    this.hideSettings();
+                }
+            });
+        }
     }
 
     showAuth() {
@@ -133,20 +170,174 @@ class App {
     }
 
     showSettings() {
-        const apiKey = prompt('Enter your OpenAI API key (leave empty to use default):');
+        const modal = document.getElementById('settingsModal');
+        const providerSelect = document.getElementById('providerSelect');
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        const modelInput = document.getElementById('modelInput');
+        const customNameInput = document.getElementById('customNameInput');
+        const customBaseUrlInput = document.getElementById('customBaseUrlInput');
         
-        if (apiKey !== null) {
-            this.updateAPIKey(apiKey);
+        // Load current settings from user profile
+        if (this.currentUser) {
+            providerSelect.value = this.currentUser.llm_provider || 'local';
+            this.updateProviderUI(providerSelect.value);
+            
+            // Set model if available
+            if (this.currentUser.llm_model) {
+                modelInput.value = this.currentUser.llm_model;
+            }
+            
+            // SECURITY: API keys are NEVER returned from the server for security
+            // The input field is always blank - user must re-enter to update
+            apiKeyInput.value = '';  // Always empty - keys never exposed
+            apiKeyInput.placeholder = this.currentUser.use_own_api_key ? 
+                'Enter new API key to update (current key is saved)' : 
+                'Enter your API key';
+            
+            customNameInput.value = this.currentUser.custom_provider_name || '';
+            customBaseUrlInput.value = this.currentUser.custom_api_base_url || '';
+        }
+        
+        modal.classList.remove('hidden');
+    }
+
+    hideSettings() {
+        const modal = document.getElementById('settingsModal');
+        modal.classList.add('hidden');
+    }
+
+    updateProviderUI(provider) {
+        const apiKeyGroup = document.getElementById('apiKeyGroup');
+        const modelGroup = document.getElementById('modelGroup');
+        const customProviderGroup = document.getElementById('customProviderGroup');
+        const providerInfo = document.getElementById('providerInfo');
+        const modelSelect = document.getElementById('modelInput');
+        const modelHelp = document.getElementById('modelHelp');
+        
+        // Reset visibility
+        apiKeyGroup.classList.add('hidden');
+        modelGroup.classList.add('hidden');
+        customProviderGroup.classList.add('hidden');
+        
+        const infoMessages = {
+            'local': 'Using default local model for lyrics generation. No API key required.',
+            'openai': 'Using OpenAI GPT models. Requires an OpenAI API key.',
+            'comet': 'Using Comet API with Claude models. Requires a Comet API key.',
+            'custom': 'Configure your own OpenAI-compatible API endpoint.'
+        };
+        
+        providerInfo.innerHTML = `<p>${infoMessages[provider]}</p>`;
+        
+        // Update model dropdown based on provider
+        modelSelect.innerHTML = '';
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        
+        if (provider === 'openai') {
+            apiKeyGroup.classList.remove('hidden');
+            modelGroup.classList.remove('hidden');
+            defaultOption.textContent = 'gpt-3.5-turbo (default)';
+            modelSelect.appendChild(defaultOption);
+            
+            const models = ['gpt-3.5-turbo', 'gpt-4', 'gpt-4-turbo'];
+            models.forEach(model => {
+                const opt = document.createElement('option');
+                opt.value = model;
+                opt.textContent = model;
+                modelSelect.appendChild(opt);
+            });
+            modelHelp.textContent = 'OpenAI model to use for lyrics generation';
+            
+        } else if (provider === 'comet') {
+            apiKeyGroup.classList.remove('hidden');
+            modelGroup.classList.remove('hidden');
+            defaultOption.textContent = 'claude-sonnet-4-5 (default)';
+            modelSelect.appendChild(defaultOption);
+            
+            const models = [
+                'claude-sonnet-4-5',
+                'claude-sonnet-3-7',
+                'claude-opus-4',
+                'claude-haiku-3-5',
+                'gpt-4o'
+            ];
+            models.forEach(model => {
+                const opt = document.createElement('option');
+                opt.value = model;
+                opt.textContent = model;
+                modelSelect.appendChild(opt);
+            });
+            modelHelp.textContent = 'Comet API model (Claude or GPT)';
+            
+        } else if (provider === 'custom') {
+            apiKeyGroup.classList.remove('hidden');
+            modelGroup.classList.remove('hidden');
+            customProviderGroup.classList.remove('hidden');
+            defaultOption.textContent = 'gpt-3.5-turbo (default)';
+            modelSelect.appendChild(defaultOption);
+            modelHelp.textContent = 'Model name for your custom provider';
+        } else {
+            modelSelect.appendChild(defaultOption);
         }
     }
 
-    async updateAPIKey(apiKey) {
-        try {
-            await api.setAPIKey(apiKey, !!apiKey);
-            showToast('API key updated successfully', 'success');
-        } catch (error) {
-            showToast('Failed to update API key', 'error');
+    async saveSettings() {
+        const provider = document.getElementById('providerSelect').value;
+        const apiKey = document.getElementById('apiKeyInput').value;
+        const model = document.getElementById('modelInput').value;
+        const customName = document.getElementById('customNameInput').value;
+        const customBaseUrl = document.getElementById('customBaseUrlInput').value;
+        
+        // Validation - only require API key if provider needs one AND user doesn't already have one saved
+        const needsApiKey = (provider === 'openai' || provider === 'comet' || provider === 'custom');
+        const hasExistingKey = this.currentUser && this.currentUser.use_own_api_key && 
+                                this.currentUser.llm_provider === provider;
+        
+        if (needsApiKey && !apiKey && !hasExistingKey) {
+            showToast('API key is required for this provider', 'error');
+            return;
         }
+        
+        if (provider === 'custom' && (!customName || !customBaseUrl)) {
+            showToast('Provider name and base URL are required for custom provider', 'error');
+            return;
+        }
+        
+        try {
+            await this.updateLLMSettings(provider, apiKey, model, customName, customBaseUrl);
+            this.hideSettings();
+            showToast('Settings saved successfully', 'success');
+            
+            // Reload user profile to get updated settings
+            this.currentUser = await api.getProfile();
+        } catch (error) {
+            console.error('Failed to save settings:', error);
+            showToast('Failed to save settings', 'error');
+        }
+    }
+
+    async updateLLMSettings(provider, apiKey, model, customName, customBaseUrl) {
+        const data = {
+            llm_provider: provider,
+            use_own_api_key: provider !== 'local'
+        };
+        
+        // Only include API key if user entered a new one
+        // If blank and user has existing key, backend will preserve it
+        if (apiKey && apiKey.trim()) {
+            data.llm_api_key = apiKey.trim();
+        }
+        
+        if (model) {
+            data.llm_model = model;
+        }
+        
+        if (provider === 'custom') {
+            data.custom_provider_name = customName;
+            data.custom_api_base_url = customBaseUrl;
+        }
+        
+        return api.setLLMSettings(data);
     }
 
     async handleLogout() {

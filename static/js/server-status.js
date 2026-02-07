@@ -4,7 +4,7 @@ class ServerStatus {
         this.statusElement = document.getElementById('serverStatus');
         this.statusDot = this.statusElement.querySelector('.status-dot');
         this.statusText = this.statusElement.querySelector('.status-text');
-        this.checkInterval = 5000; // 5 seconds
+        this.checkInterval = 10000; // 10 seconds
         this.isOnline = false;
         
         this.init();
@@ -14,7 +14,7 @@ class ServerStatus {
         // Check immediately
         this.checkStatus();
         
-        // Then check every 5 seconds
+        // Then check every 10 seconds
         setInterval(() => this.checkStatus(), this.checkInterval);
     }
     

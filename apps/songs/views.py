@@ -72,9 +72,9 @@ class SongCreateView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         song = serializer.save()
         
-        # Trigger async generation task
+        # Trigger background generation task
         from apps.generation.tasks import generate_song_task
-        generate_song_task.delay(song.id)
+        generate_song_task(song.id)
         
         return Response(
             SongSerializer(song).data,

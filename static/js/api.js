@@ -60,7 +60,40 @@ class API {
         const data = await response.json().catch(() => ({}));
 
         if (!response.ok) {
-            throw new Error(data.error || data.message || 'Request failed');
+            // Enhanced error logging
+            if (window.debug) {
+                window.debug.error('[API ERROR] Response not OK:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    data: data
+                });
+            }
+            
+            // Better error message construction
+            let errorMessage = 'Request failed';
+            
+            if (data.error) {
+                errorMessage = data.error;
+            } else if (data.message) {
+                errorMessage = data.message;
+            } else if (data.detail) {
+                errorMessage = data.detail;
+            } else if (typeof data === 'object') {
+                // Handle validation errors
+                const errors = [];
+                for (const [field, messages] of Object.entries(data)) {
+                    if (Array.isArray(messages)) {
+                        errors.push(`${field}: ${messages.join(', ')}`);
+                    } else {
+                        errors.push(`${field}: ${messages}`);
+                    }
+                }
+                if (errors.length > 0) {
+                    errorMessage = errors.join('; ');
+                }
+            }
+            
+            throw new Error(errorMessage);
         }
 
         return data;
@@ -100,15 +133,35 @@ class API {
 
     // Auth endpoints
     async register(username, email, password, password_confirm) {
+        if (window.debug) {
+            window.debug.log('[API REGISTER] Preparing registration request:', {
+                username,
+                email,
+                hasPassword: !!password,
+                hasPasswordConfirm: !!password_confirm
+            });
+        }
+        
         const data = await this.request('/auth/register/', {
             method: 'POST',
             body: JSON.stringify({ username, email, password, password_confirm }),
             auth: false,
         });
 
+        if (window.debug) {
+            window.debug.log('[API REGISTER] Registration response received:', {
+                hasUser: !!data.user,
+                hasAccess: !!data.access,
+                hasRefresh: !!data.refresh
+            });
+        }
+
         if (data.access) {
             this.setToken(data.access);
             localStorage.setItem('refresh_token', data.refresh);
+            if (window.debug) {
+                window.debug.log('[API REGISTER] Tokens stored successfully');
+            }
         }
 
         return data;
@@ -188,6 +241,13 @@ class API {
         });
     }
 
+    async setLLMSettings(data) {
+        return this.request('/auth/api-key/', {
+            method: 'PATCH',
+            body: JSON.stringify(data),
+        });
+    }
+
     // Songs endpoints
     async getSongs(params = {}) {
         const query = new URLSearchParams(params).toString();
@@ -246,11 +306,26 @@ class API {
     }
 
     // Generation endpoints
-    async generateLyrics(prompt, temperature = 0.8) {
-        return this.request('/generation/lyrics/', {
+    async generateLyrics(prompt, instructions = '', temperature = 0.8) {
+        const requestBody = { prompt, temperature };
+        if (instructions) {
+            requestBody.instructions = instructions;
+        }
+        
+        if (window.debug) {
+            window.debug.log('[API] generateLyrics request:', requestBody);
+        }
+        
+        const result = await this.request('/generation/lyrics/', {
             method: 'POST',
-            body: JSON.stringify({ prompt, temperature }),
+            body: JSON.stringify(requestBody),
         });
+        
+        if (window.debug) {
+            window.debug.log('[API] generateLyrics response:', result);
+        }
+        
+        return result;
     }
 
     async getTaskStatus(taskId) {

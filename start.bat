@@ -51,12 +51,7 @@ echo.
 echo Server will be available at: http://localhost:8000
 if "%DEBUG_MODE%"=="True" echo [DEBUG] Verbose logging enabled
 echo.
-echo Starting Celery worker in separate window...
-if "%DEBUG_MODE%"=="True" (
-    start "Celery Worker [DEBUG]" cmd /k "venv\Scripts\activate && celery -A config worker --loglevel=debug --pool=solo"
-) else (
-    start "Celery Worker" cmd /k "venv\Scripts\activate && celery -A config worker --loglevel=info --pool=solo"
-)
+echo Background tasks will run in server process (no separate worker needed)
 echo.
 echo Press Ctrl+C to stop the server
 echo.

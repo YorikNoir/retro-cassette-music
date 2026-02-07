@@ -13,9 +13,23 @@ class User(AbstractUser):
     bio = models.TextField(max_length=500, blank=True)
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
     
-    # API Key for OpenAI (encrypted)
-    openai_api_key = EncryptedCharField(max_length=255, blank=True, null=True)
+    # LLM Provider Configuration
+    # SECURITY: API keys are encrypted at rest using EncryptedCharField
+    # They are NEVER exposed in API responses (see serializers)
+    llm_provider = models.CharField(max_length=50, default='local', choices=[
+        ('local', 'Local Model'),
+        ('openai', 'OpenAI'),
+        ('comet', 'Comet API'),
+        ('custom', 'Custom Provider')
+    ])
+    llm_api_key = EncryptedCharField(max_length=255, blank=True, null=True)  # ENCRYPTED - Never exposed in API
+    llm_model = models.CharField(max_length=100, default='claude-sonnet-4-5', blank=True, null=True)
+    custom_api_base_url = models.URLField(max_length=500, blank=True, null=True)
+    custom_provider_name = models.CharField(max_length=100, blank=True, null=True)
     use_own_api_key = models.BooleanField(default=False)
+    
+    # Legacy field for backwards compatibility (ENCRYPTED)
+    openai_api_key = EncryptedCharField(max_length=255, blank=True, null=True)  # ENCRYPTED - Never exposed in API
     
     # Stats
     total_songs_created = models.IntegerField(default=0)

@@ -346,6 +346,14 @@ body::before {
     letter-spacing: 1px;
 }
 
+.form-hint {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    opacity: 0.8;
+}
+
 .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -552,4 +560,77 @@ body::before {
 
 .hidden {
     display: none !important;
+}
+/* Settings Modal */
+#settingsModal .modal-content {
+    padding: var(--space-lg);
+    max-width: 600px;
+    width: 90%;
+}
+
+#settingsModal h2 {
+    color: var(--accent-primary);
+    margin-bottom: var(--space-lg);
+    font-size: 1.8rem;
+    text-align: center;
+}
+
+.settings-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.settings-form .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+.settings-form label {
+    color: var(--accent-secondary);
+    font-weight: bold;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.settings-form small {
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    font-style: italic;
+}
+
+.provider-info {
+    background: var(--bg-tertiary);
+    border-left: 4px solid var(--accent-primary);
+    padding: var(--space-sm);
+    border-radius: var(--radius-sm);
+    margin: var(--space-sm) 0;
+}
+
+.provider-info p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.modal-actions {
+    display: flex;
+    gap: var(--space-sm);
+    margin-top: var(--space-lg);
+}
+
+.modal-actions .retro-btn {
+    flex: 1;
+}
+
+.modal-actions .btn-primary {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+}
+
+.modal-actions .btn-primary:hover {
+    background: var(--accent-secondary);
+    border-color: var(--accent-secondary);
 }

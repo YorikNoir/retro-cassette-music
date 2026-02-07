@@ -14,8 +14,18 @@ fi
 echo "Activating virtual environment..."
 source venv/bin/activate
 
-# Install dependencies
-echo "Installing dependencies..."
+# Install PyTorch with CUDA support first
+echo ""
+echo "================================================"
+echo " Installing PyTorch with CUDA 12.1 support..."
+echo " This may take several minutes..."
+echo "================================================"
+echo ""
+pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu121
+
+# Install remaining dependencies
+echo ""
+echo "Installing remaining dependencies..."
 pip install -r requirements.txt
 
 # Create .env if it doesn't exist

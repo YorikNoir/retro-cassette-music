@@ -50,25 +50,10 @@ if [ "$DEBUG_MODE" = true ]; then
     echo "[DEBUG] Verbose logging enabled"
 fi
 echo ""
-echo "Starting Celery worker in background..."
-
-# Start Celery worker in background
-if [ "$DEBUG_MODE" = true ]; then
-    celery -A config worker --loglevel=debug &
-    echo "Celery worker started with PID: $! [DEBUG MODE]"
-else
-    celery -A config worker --loglevel=info &
-    echo "Celery worker started with PID: $!"
-fi
-CELERY_PID=$!
-echo $CELERY_PID > celery.pid
-
+echo "Background tasks will run in server process (no separate worker needed)"
 echo ""
 echo "Press Ctrl+C to stop the server"
 echo ""
-
-# Trap SIGINT to cleanup Celery worker
-trap "echo ''; echo 'Stopping services...'; kill $CELERY_PID 2>/dev/null; rm -f celery.pid; exit 0" INT
 
 # Start Django server
 if [ "$DEBUG_MODE" = true ]; then

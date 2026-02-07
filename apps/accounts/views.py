@@ -1,6 +1,14 @@
 """
 Views for user accounts.
+
+SECURITY NOTES:
+- API keys are stored encrypted in the database using EncryptedCharField
+- API keys are NEVER returned in API responses (write_only serializer fields)
+- UserProfileSerializer explicitly excludes all API key fields
+- APIKeySerializer has write_only=True for all key fields and overrides to_representation()
+- Frontend never displays API keys - input is always blank
 """
+import logging
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -16,6 +24,7 @@ from .serializers import (
 )
 from .models import UserPreferences
 
+logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
@@ -27,12 +36,32 @@ class RegisterView(generics.CreateAPIView):
     serializer_class = UserRegistrationSerializer
     
     def create(self, request, *args, **kwargs):
+        logger.info(f"[REGISTER] Received registration request")
+        logger.debug(f"[REGISTER] Request data: {request.data}")
+        logger.debug(f"[REGISTER] Request headers: {dict(request.headers)}")
+        
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
+        
+        try:
+            logger.debug(f"[REGISTER] Validating serializer...")
+            serializer.is_valid(raise_exception=True)
+            logger.info(f"[REGISTER] Validation successful")
+        except Exception as e:
+            logger.error(f"[REGISTER] Validation failed: {str(e)}")
+            logger.error(f"[REGISTER] Serializer errors: {serializer.errors}")
+            raise
+        
+        try:
+            logger.debug(f"[REGISTER] Creating user...")
+            user = serializer.save()
+            logger.info(f"[REGISTER] User created successfully: {user.username}")
+        except Exception as e:
+            logger.error(f"[REGISTER] User creation failed: {str(e)}")
+            raise
         
         # Generate tokens
         refresh = RefreshToken.for_user(user)
+        logger.info(f"[REGISTER] Tokens generated for user: {user.username}")
         
         return Response({
             'user': UserProfileSerializer(user).data,

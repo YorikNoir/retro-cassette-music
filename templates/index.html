@@ -62,19 +62,23 @@
                         <form id="registerFormElement">
                             <div class="form-group">
                                 <label>Username</label>
-                                <input type="text" name="username" required class="retro-input">
+                                <input type="text" name="username" required class="retro-input" minlength="3" placeholder="At least 3 characters">
+                                <small class="form-hint">Choose a unique username (3+ chars)</small>
                             </div>
                             <div class="form-group">
                                 <label>Email</label>
-                                <input type="email" name="email" required class="retro-input">
+                                <input type="email" name="email" required class="retro-input" placeholder="your@email.com">
+                                <small class="form-hint">We'll never share your email</small>
                             </div>
                             <div class="form-group">
                                 <label>Password</label>
-                                <input type="password" name="password" required class="retro-input">
+                                <input type="password" name="password" required class="retro-input" minlength="8" placeholder="At least 8 characters">
+                                <small class="form-hint">Minimum 8 characters required</small>
                             </div>
                             <div class="form-group">
                                 <label>Confirm Password</label>
-                                <input type="password" name="password_confirm" required class="retro-input">
+                                <input type="password" name="password_confirm" required class="retro-input" minlength="8" placeholder="Re-enter password">
+                                <small class="form-hint">Must match password above</small>
                             </div>
                             <button type="submit" class="retro-btn primary">REGISTER</button>
                         </form>
@@ -170,6 +174,11 @@
                         </div>
 
                         <div class="form-group">
+                            <label>Lyrics Instructions (optional)</label>
+                            <input type="text" name="lyrics_instructions" class="retro-input" placeholder="e.g., Make it rhyme, use metaphors about nature...">
+                        </div>
+
+                        <div class="form-group">
                             <label>
                                 Lyrics 
                                 <button type="button" class="retro-btn small" id="generateLyricsBtn">🤖 Generate with AI</button>
@@ -178,8 +187,8 @@
                         </div>
 
                         <div class="form-group">
-                            <label>Description (optional)</label>
-                            <textarea name="description" rows="3" class="retro-textarea" placeholder="Add a description..."></textarea>
+                            <label>Song Style/Description (optional)</label>
+                            <textarea name="description" rows="3" class="retro-textarea" placeholder="Describe the song style (e.g., Fast tempo, heavy bass, ethereal vocals...)"></textarea>
                         </div>
 
                         <div class="form-actions">
@@ -196,6 +205,77 @@
                 <button class="close-btn" id="closePlayer">×</button>
                 <div class="cassette-display" id="playerDisplay">
                     <!-- Song details will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Modal -->
+        <div id="settingsModal" class="modal hidden">
+            <div class="modal-content">
+                <button class="close-btn" id="closeSettings">×</button>
+                <h2>⚙️ LLM Provider Settings</h2>
+                
+                <div class="settings-form">
+                    <div class="form-group">
+                        <label for="providerSelect">Provider</label>
+                        <select id="providerSelect" class="retro-input">
+                            <option value="local">Local Model (Default)</option>
+                            <option value="openai">OpenAI (GPT-3.5-turbo)</option>
+                            <option value="comet">Comet API</option>
+                            <option value="custom">Custom Provider</option>
+                        </select>
+                    </div>
+
+                    <div id="apiKeyGroup" class="form-group hidden">
+                        <label for="apiKeyInput">API Key</label>
+                        <input 
+                            type="password" 
+                            id="apiKeyInput" 
+                            class="retro-input" 
+                            placeholder="Enter your API key"
+                        >
+                        <small>Your API key is encrypted and stored securely</small>
+                    </div>
+
+                    <div id="modelGroup" class="form-group hidden">
+                        <label for="modelInput">Model</label>
+                        <select id="modelInput" class="retro-input">
+                            <option value="">Default for provider</option>
+                        </select>
+                        <small id="modelHelp">Select the AI model to use</small>
+                    </div>
+
+                    <div id="customProviderGroup" class="hidden">
+                        <div class="form-group">
+                            <label for="customNameInput">Provider Name</label>
+                            <input 
+                                type="text" 
+                                id="customNameInput" 
+                                class="retro-input" 
+                                placeholder="e.g., My Custom LLM"
+                            >
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="customBaseUrlInput">Base URL</label>
+                            <input 
+                                type="url" 
+                                id="customBaseUrlInput" 
+                                class="retro-input" 
+                                placeholder="https://api.example.com"
+                            >
+                            <small>OpenAI-compatible API endpoint</small>
+                        </div>
+                    </div>
+
+                    <div class="provider-info" id="providerInfo">
+                        <p>Using default local model for lyrics generation.</p>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button id="saveSettingsBtn" class="retro-btn btn-primary">💾 Save Settings</button>
+                        <button id="cancelSettingsBtn" class="retro-btn">Cancel</button>
+                    </div>
                 </div>
             </div>
         </div>

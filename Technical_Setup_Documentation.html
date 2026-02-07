@@ -161,75 +161,177 @@
     </style>
 </head>
 <body>
-    <h1>Retro Cassette Music - Technical Setup</h1>
+    <h1>Retro Cassette Music - Technical Setup Documentation</h1>
     
-    <div class="grid">
-        <div>
-            <h2>What Was Built</h2>
-            <ul>
-                <li><strong>Django web application</strong> with retro cassette UI</li>
-                <li><strong>RESTful API</strong> with JWT authentication</li>
-                <li><strong>AI music generation</strong> (ACE-Step v1.5)</li>
-                <li><strong>LLM lyrics generation</strong> (local or OpenAI)</li>
-                <li><strong>User library</strong> with voting/publishing</li>
-                <li><strong>Celery async tasks</strong> for generation</li>
-            </ul>
-            
-            <h2>Tech Stack</h2>
-            <ul>
-                <li>Django 5.0.1 + DRF 3.14.0</li>
-                <li>Vanilla JavaScript (no frameworks)</li>
-                <li>PyTorch 2.10 + Transformers 5.1</li>
-                <li>Celery 5.3.4 + Redis 5.0.1</li>
-                <li>JWT authentication + encrypted API keys</li>
-                <li>SQLite (dev) / PostgreSQL (prod)</li>
-            </ul>
-        </div>
-        
-        <div>
-            <h2>Key Files</h2>
-            <div class="box">
-                <h3>Startup Scripts</h3>
-                <ul>
-                    <li><code>start.bat</code> → Windows startup</li>
-                    <li><code>start.sh</code> → Linux/Mac startup</li>
-                    <li><code>stop.bat</code> → Windows shutdown</li>
-                    <li><code>stop.sh</code> → Linux/Mac shutdown</li>
-                </ul>
-            </div>
-            <div class="box" style="margin-top: 0.2cm;">
-                <h3>Configuration</h3>
-                <ul>
-                    <li><code>.env</code> → Environment settings</li>
-                    <li><code>config/settings.py</code> → Django config</li>
-                    <li><code>requirements.txt</code> → Python deps</li>
-                </ul>
-            </div>
-        </div>
+    <h2>System Architecture Overview</h2>
+    
+    <div class="box" style="background: #f8f9fa; border-color: #667eea; border-width: 3px;">
+        <h3 style="color: #667eea;">Project Vision: Smart Home Music Generation</h3>
+        <p style="margin-bottom: 0.2cm;"><strong>Primary Use Case:</strong> Personalized music generation for smart home environments powered by Home Assistant</p>
+        <ul>
+            <li><strong>Multi-User Support:</strong> Separate accounts for users, rooms, and party modes with individual playlists</li>
+            <li><strong>Voice Command Integration:</strong> UI/UX optimized for smart home voice assistants and smart mirror displays</li>
+            <li><strong>Guest Personalization:</strong> Allow guests to create custom songs via voice commands or touch interfaces</li>
+            <li><strong>Smart Speaker Playback:</strong> Direct streaming to smart home speaker systems (Sonos, Google Home, etc.)</li>
+            <li><strong>Home Assistant API:</strong> RESTful endpoints for seamless integration with home automation workflows</li>
+            <li><strong>Room-Based Playlists:</strong> Context-aware music generation based on room occupancy and activity</li>
+        </ul>
     </div>
     
-    <h2>Commands</h2>
+    <div class="box">
+        <p><strong>Architecture Pattern:</strong> Monolithic Django application with async task processing</p>
+        <ul>
+            <li><strong>Web Framework:</strong> Django 5.0.1 with Django REST Framework 3.14.0</li>
+            <li><strong>Task Queue:</strong> Celery 5.3.4 with Redis 5.0.1 broker</li>
+            <li><strong>AI/ML Stack:</strong> PyTorch 2.10, Transformers 5.1, ACE-Step v1.5</li>
+            <li><strong>Authentication:</strong> JWT (djangorestframework-simplejwt) + Django sessions + Home Assistant token support</li>
+            <li><strong>Database:</strong> SQLite (dev), PostgreSQL-ready (prod)</li>
+            <li><strong>Encryption:</strong> Fernet (symmetric encryption) for API keys at rest</li>
+        </ul>
+    </div>
+    
+    <h2>Installation & Startup Commands</h2>
     <div class="grid">
         <div>
+            <strong>Initial Setup (Windows):</strong>
+            <div class="command-box">setup.bat</div>
+            <p style="font-size: 8pt; margin-top: 0.1cm;">Creates venv, installs dependencies, runs migrations, creates .env if missing</p>
+            
             <strong>Start All Services (Windows):</strong>
             <div class="command-box">start.bat</div>
-            <strong>Start All Services (Linux/Mac):</strong>
-            <div class="command-box">chmod +x start.sh && ./start.sh</div>
+            <p style="font-size: 8pt; margin-top: 0.1cm;">Launches Django (localhost:8000) + Celery worker in separate windows</p>
+            
+            <strong>Install Local LLM (Windows):</strong>
+            <div class="command-box">install_local_llm.bat</div>
+            <p style="font-size: 8pt; margin-top: 0.1cm;">Downloads Ollama, installs Llama 3.2 3B model (~2GB)</p>
         </div>
         <div>
-            <strong>Stop All Services (Windows):</strong>
-            <div class="command-box">stop.bat</div>
-            <strong>Stop All Services (Linux/Mac):</strong>
-            <div class="command-box">chmod +x stop.sh && ./stop.sh</div>
+            <strong>Initial Setup (Linux/Mac):</strong>
+            <div class="command-box">chmod +x setup.sh && ./setup.sh</div>
+            
+            <strong>Start All Services (Linux/Mac):</strong>
+            <div class="command-box">chmod +x start.sh && ./start.sh</div>
+            <p style="font-size: 8pt; margin-top: 0.1cm;">Runs Django + Celery as background processes with logging</p>
+            
+            <strong>Install Local LLM (Linux/Mac):</strong>
+            <div class="command-box">chmod +x install_local_llm.sh && ./install_local_llm.sh</div>
         </div>
     </div>
     
-    <h2>Live URLs</h2>
+    <h2>LLM Provider Architecture</h2>
+    <div class="grid">
+        <div class="box">
+            <h3>Local LLM (Ollama)</h3>
+            <ul>
+                <li><strong>Service:</strong> HTTP API on localhost:11434</li>
+                <li><strong>Models:</strong> llama3.2:3b (default), mistral, phi3</li>
+                <li><strong>Storage:</strong> ~/.ollama/models</li>
+                <li><strong>API Compatibility:</strong> OpenAI-like chat completions</li>
+                <li><strong>Security:</strong> No external API calls, runs locally</li>
+                <li><strong>Performance:</strong> CPU/GPU inference, ~1-3s latency</li>
+            </ul>
+        </div>
+        <div class="box">
+            <h3>Cloud Providers</h3>
+            <ul>
+                <li><strong>OpenAI:</strong> gpt-3.5-turbo, gpt-4, gpt-4-turbo</li>
+                <li><strong>Comet API:</strong> claude-sonnet-4-5 (default), claude-3-7, opus-4, haiku-3-5, gpt-4o</li>
+                <li><strong>Custom:</strong> Any OpenAI-compatible endpoint (LM Studio, text-gen-webui)</li>
+                <li><strong>Key Storage:</strong> Encrypted with Fernet in database (EncryptedCharField)</li>
+                <li><strong>API Security:</strong> Keys never exposed in GET responses (write_only serializer fields)</li>
+            </ul>
+        </div>
+    </div>
+    
+    <h2>Live URLs & Resources</h2>
     <ul style="margin-bottom: 0.2cm;">
-        <li><strong>Local Server:</strong> http://localhost:8000</li>
+        <li><strong>Local Server:</strong> http://localhost:8000 (Django development server)</li>
+        <li><strong>Admin Panel:</strong> http://localhost:8000/admin (Django admin interface)</li>
+        <li><strong>API Root:</strong> http://localhost:8000/api/ (DRF browsable API)</li>
+        <li><strong>API Documentation:</strong> http://localhost:8000/api/docs/ (Swagger/OpenAPI)</li>
+        <li><strong>Flower (Celery):</strong> http://localhost:5555 (if installed: pip install flower)</li>
+        <li><strong>Ollama API:</strong> http://localhost:11434/api/tags (list installed models)</li>
         <li><strong>GitHub Repo:</strong> https://github.com/YorikNoir/retro-cassette-music</li>
-        <li><strong>API Docs:</strong> http://localhost:8000/api/ (when running)</li>
     </ul>
+    
+    <h2>Home Assistant Integration API</h2>
+    <div class="grid">
+        <div class="box">
+            <h3>Song Generation Endpoints</h3>
+            <ul style="font-size: 8pt;">
+                <li><strong>POST /api/ha/generate-song</strong>
+                    <ul>
+                        <li>Body: {genre, mood, duration, room_id, voice_prompt}</li>
+                        <li>Returns: {task_id, status_url}</li>
+                        <li>Auth: Home Assistant long-lived token</li>
+                    </ul>
+                </li>
+                <li><strong>GET /api/ha/song-status/{task_id}</strong>
+                    <ul>
+                        <li>Returns: {status, progress, audio_url, lyrics}</li>
+                        <li>Poll every 2-5s during generation</li>
+                    </ul>
+                </li>
+                <li><strong>POST /api/ha/quick-song</strong>
+                    <ul>
+                        <li>Body: {voice_command, room_context}</li>
+                        <li>AI parses voice input to extract parameters</li>
+                        <li>Returns: Immediate task_id for background generation</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        <div class="box">
+            <h3>Playlist Management</h3>
+            <ul style="font-size: 8pt;">
+                <li><strong>GET /api/ha/playlists/{room_id}</strong>
+                    <ul>
+                        <li>Returns: Room-specific playlists with metadata</li>
+                        <li>Includes guest playlists, party mode, etc.</li>
+                    </ul>
+                </li>
+                <li><strong>POST /api/ha/playlist/add</strong>
+                    <ul>
+                        <li>Body: {song_id, playlist_id, room_id}</li>
+                        <li>Add generated song to room playlist</li>
+                    </ul>
+                </li>
+                <li><strong>GET /api/ha/rooms</strong>
+                    <ul>
+                        <li>Returns: List of configured rooms/zones</li>
+                        <li>Each with active playlist and speaker info</li>
+                    </ul>
+                </li>
+                <li><strong>POST /api/ha/party-mode</strong>
+                    <ul>
+                        <li>Body: {rooms[], theme, guest_access}</li>
+                        <li>Creates multi-room synchronized playlist</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="box">
+        <h3>Voice Command Workflow</h3>
+        <p style="font-size: 8pt; margin-bottom: 0.2cm;"><strong>Example:</strong> "Hey Google, create a relaxing jazz song for the living room"</p>
+        <ul style="font-size: 8pt;">
+            <li><strong>Step 1:</strong> Home Assistant captures voice command, extracts intent and entities</li>
+            <li><strong>Step 2:</strong> Automation sends POST to /api/ha/quick-song with parsed parameters</li>
+            <li><strong>Step 3:</strong> Backend validates request, creates Celery task for song generation</li>
+            <li><strong>Step 4:</strong> Home Assistant polls /api/ha/song-status/{task_id} every 3s</li>
+            <li><strong>Step 5:</strong> When complete, automation triggers TTS announcement and plays song</li>
+            <li><strong>Step 6:</strong> Song automatically added to room playlist for future playback</li>
+        </ul>
+        
+        <h3>Authentication</h3>
+        <ul style="font-size: 8pt;">
+            <li><strong>Token Type:</strong> Home Assistant long-lived access token (Bearer auth)</li>
+            <li><strong>Header:</strong> Authorization: Bearer ha_token_xxxxxxxxxxxxx</li>
+            <li><strong>Scope:</strong> Limited to /api/ha/* endpoints, no admin access</li>
+            <li><strong>Room Mapping:</strong> Token includes room_permissions for multi-zone access control</li>
+        </ul>
+    </div>
     
     <h2>Design System</h2>
     <div class="color-palette">
@@ -255,52 +357,286 @@
         </div>
     </div>
     
-    <h2>Project Structure</h2>
+    <h2>Performance Optimization</h2>
     <div class="grid">
         <div class="box">
-            <h3>Backend Apps</h3>
+            <h3>Frontend Optimizations</h3>
             <ul>
-                <li><strong>accounts/</strong> User auth, profiles</li>
-                <li><strong>songs/</strong> Song CRUD, voting</li>
-                <li><strong>generation/</strong> AI generation tasks</li>
-                <li><strong>library/</strong> User statistics</li>
+                <li><strong>Lazy Loading:</strong> Images loaded on scroll (IntersectionObserver)</li>
+                <li><strong>Pagination:</strong> 20 songs per page to limit DOM size</li>
+                <li><strong>Debouncing:</strong> Search input debounced to 300ms</li>
+                <li><strong>CSS Animations:</strong> Hardware-accelerated transforms</li>
+                <li><strong>No Framework:</strong> Vanilla JS reduces bundle size to ~50KB</li>
             </ul>
         </div>
         <div class="box">
-            <h3>Frontend</h3>
+            <h3>Backend Optimizations</h3>
             <ul>
-                <li><strong>templates/</strong> HTML (SPA)</li>
-                <li><strong>static/css/</strong> Retro styling</li>
-                <li><strong>static/js/</strong> Vanilla JS logic</li>
+                <li><strong>Database:</strong> Indexed fields (user_id, created_at, is_published)</li>
+                <li><strong>Query Optimization:</strong> select_related() for foreign keys</li>
+                <li><strong>Caching:</strong> Redis cache for popular songs (TTL: 5min)</li>
+                <li><strong>Model Loading:</strong> ACE-Step loaded once per worker, reused</li>
+                <li><strong>File Serving:</strong> Static files via WhiteNoise (dev), CDN (prod)</li>
             </ul>
         </div>
     </div>
     
-    <h2>Major Features</h2>
+    <h2>Environment Variables Reference</h2>
     <div class="box">
-        <ul>
-            <li><strong>Auto-startup:</strong> Both Django and Celery start with one command</li>
-            <li><strong>Cross-platform:</strong> Works on Windows, Linux, and macOS</li>
-            <li><strong>Encrypted API keys:</strong> Secure storage for OpenAI credentials</li>
-            <li><strong>Async generation:</strong> Non-blocking music creation via Celery</li>
-            <li><strong>Retro UI:</strong> Cassette-themed player with animations</li>
+        <ul style="font-size: 8pt; column-count: 2; column-gap: 0.5cm;">
+            <li><strong>SECRET_KEY:</strong> Django secret (auto-generated)</li>
+            <li><strong>ENCRYPTION_KEY:</strong> Fernet key for API keys (REQUIRED)</li>
+            <li><strong>DEBUG:</strong> Debug mode (True/False, default: False)</li>
+            <li><strong>ALLOWED_HOSTS:</strong> Comma-separated hosts (default: localhost,127.0.0.1)</li>
+            <li><strong>DATABASE_URL:</strong> PostgreSQL URL (optional, defaults to SQLite)</li>
+            <li><strong>REDIS_URL:</strong> Redis connection string (default: redis://localhost:6379/0)</li>
+            <li><strong>MODELS_PATH:</strong> Path to ACE-Step checkpoints (default: ./checkpoints)</li>
+            <li><strong>MEDIA_ROOT:</strong> User uploads directory (default: ./media)</li>
+            <li><strong>STATIC_ROOT:</strong> Collected static files (default: ./staticfiles)</li>
+            <li><strong>MAX_CONCURRENT_TASKS:</strong> Celery concurrency (default: 3)</li>
+            <li><strong>OLLAMA_BASE_URL:</strong> Ollama API endpoint (default: http://localhost:11434)</li>
+            <li><strong>OLLAMA_MODEL:</strong> Default Ollama model (default: llama3.2:3b)</li>
+            <li><strong>CORS_ALLOWED_ORIGINS:</strong> Frontend origins (default: http://localhost:8000)</li>
+            <li><strong>JWT_ACCESS_TOKEN_LIFETIME:</strong> Minutes (default: 15)</li>
+            <li><strong>JWT_REFRESH_TOKEN_LIFETIME:</strong> Days (default: 7)</li>
+            <li><strong>HA_BASE_URL:</strong> Home Assistant URL (e.g., http://homeassistant.local:8123)</li>
+            <li><strong>HA_WEBHOOK_SECRET:</strong> Secret for Home Assistant webhooks</li>
+            <li><strong>ENABLE_VOICE_COMMANDS:</strong> Enable /api/ha/quick-song endpoint (default: True)</li>
+            <li><strong>DEFAULT_ROOM:</strong> Fallback room for unspecified requests (default: "Living Room")</li>
         </ul>
     </div>
     
-    <h2>Key Solutions</h2>
+    <h2>Deployment Checklist</h2>
     <div class="grid">
         <div class="box">
-            <p><strong>Challenge:</strong> Manual Celery startup required<br>
-            <strong>Solution:</strong> Auto-launch in separate window/background process</p>
+            <h3>Production Requirements</h3>
+            <ul>
+                <li>✅ Set DEBUG=False in .env</li>
+                <li>✅ Generate new SECRET_KEY and ENCRYPTION_KEY</li>
+                <li>✅ Configure ALLOWED_HOSTS with domain</li>
+                <li>✅ Switch to PostgreSQL (DATABASE_URL)</li>
+                <li>✅ Set up Redis persistence (AOF enabled)</li>
+                <li>✅ Configure CORS_ALLOWED_ORIGINS</li>
+                <li>✅ Collect static files: python manage.py collectstatic</li>
+                <li>✅ Run migrations: python manage.py migrate</li>
+            </ul>
         </div>
         <div class="box">
-            <p><strong>Challenge:</strong> Fernet encryption key generation<br>
-            <strong>Solution:</strong> Python cryptography.fernet.Fernet.generate_key()</p>
+            <h3>Server Configuration</h3>
+            <ul>
+                <li><strong>Web Server:</strong> Nginx reverse proxy to Gunicorn</li>
+                <li><strong>WSGI:</strong> Gunicorn (4 workers, 2 threads each)</li>
+                <li><strong>Celery:</strong> systemd service with auto-restart</li>
+                <li><strong>Redis:</strong> systemd service, maxmemory-policy allkeys-lru</li>
+                <li><strong>SSL:</strong> Let's Encrypt via certbot</li>
+                <li><strong>Monitoring:</strong> Sentry for error tracking</li>
+            </ul>
         </div>
     </div>
     
+    <h2>Troubleshooting</h2>
+    <div class="box">
+        <h3>Common Issues</h3>
+        <ul>
+            <li><strong>Celery not starting:</strong> Check Redis connection (redis-cli ping), ensure port 6379 open</li>
+            <li><strong>Lyrics generation fails:</strong> Verify LLM provider settings, check API key encryption, check Ollama service (ollama list)</li>
+            <li><strong>Music generation slow:</strong> CUDA not available - check torch.cuda.is_available(), install correct PyTorch+CUDA version</li>
+            <li><strong>EncryptionError:</strong> ENCRYPTION_KEY missing or invalid in .env - regenerate with cryptography.fernet.Fernet.generate_key()</li>
+            <li><strong>403 CSRF errors:</strong> CORS misconfiguration - check CORS_ALLOWED_ORIGINS matches frontend URL</li>
+            <li><strong>Static files 404:</strong> Run python manage.py collectstatic, configure WhiteNoise middleware</li>
+            <li><strong>Database migrations:</strong> Delete db.sqlite3 and run python manage.py migrate (dev only)</li>
+            <li><strong>Home Assistant webhooks failing:</strong> Verify HA_WEBHOOK_SECRET matches Home Assistant configuration, check firewall rules</li>
+            <li><strong>Voice commands not working:</strong> Check ENABLE_VOICE_COMMANDS=True, verify room entity_id exists in database</li>
+            <li><strong>Room playlist empty:</strong> Create default playlist via /api/ha/rooms POST endpoint or Django admin</li>
+            <li><strong>401 Unauthorized from HA:</strong> Regenerate Home Assistant long-lived token, update user.ha_token in database</li>
+        </ul>
+    </div>
+    
+    <h2>Development Tools</h2>
+    <div class="grid">
+        <div class="box">
+            <h3>Debugging</h3>
+            <ul>
+                <li><strong>Django Debug Toolbar:</strong> pip install django-debug-toolbar</li>
+                <li><strong>Celery Flower:</strong> celery -A config flower (monitor tasks)</li>
+                <li><strong>Redis Commander:</strong> npm i -g redis-commander (GUI for Redis)</li>
+                <li><strong>Django Shell:</strong> python manage.py shell (interactive Python)</li>
+            </ul>
+        </div>
+        <div class="box">
+            <h3>Testing</h3>
+            <ul>
+                <li><strong>Unit Tests:</strong> python manage.py test</li>
+                <li><strong>Coverage:</strong> pip install coverage && coverage run manage.py test</li>
+                <li><strong>API Testing:</strong> Postman collection in docs/api/</li>
+                <li><strong>Load Testing:</strong> locust -f tests/load_test.py</li>
+            </ul>
+        </div>
+    </div>
+    
+    <h2>Application Structure & Components</h2>
+    <div class="grid">
+        <div class="box">
+            <h3>Backend Django Apps</h3>
+            <ul>
+                <li><strong>accounts/</strong> User auth, JWT tokens, encrypted API keys, user preferences, room permissions</li>
+                <li><strong>songs/</strong> Song model, CRUD operations, voting system, publishing logic</li>
+                <li><strong>generation/</strong> Celery tasks, LLM integration, ACE-Step inference, voice command parsing</li>
+                <li><strong>library/</strong> User statistics, song collections, filtering, room-based playlists</li>
+                <li><strong>homeassistant/</strong> Home Assistant API endpoints, room management, voice workflow integration</li>
+            </ul>
+            <h3>Configuration</h3>
+            <ul>
+                <li><strong>config/settings.py</strong> → Django settings, ENCRYPTION_KEY, middleware, HA token validation</li>
+                <li><strong>config/celery.py</strong> → Celery autodiscovery, Redis broker config</li>
+                <li><strong>config/urls.py</strong> → API routing, static files, admin panel, HA endpoints</li>
+            </ul>
+        </div>
+        <div class="box">
+            <h3>Frontend Architecture</h3>
+            <ul>
+                <li><strong>templates/index.html</strong> SPA shell, cassette UI markup, responsive for smart mirrors</li>
+                <li><strong>templates/smartmirror.html</strong> Simplified UI for touchscreen/voice control</li>
+                <li><strong>static/js/api.js</strong> Fetch API wrapper, auth headers, error handling</li>
+                <li><strong>static/js/auth.js</strong> JWT management, localStorage, token refresh, HA token support</li>
+                <li><strong>static/js/songs.js</strong> Song rendering, filtering, pagination</li>
+                <li><strong>static/js/player.js</strong> Audio playback, cassette animations</li>
+                <li><strong>static/js/voice.js</strong> Voice command UI, real-time status updates</li>
+                <li><strong>static/css/main.css</strong> Retro theme, purple gradients</li>
+                <li><strong>static/css/cassette.css</strong> Cassette player styling, tape animations</li>
+                <li><strong>static/css/smartmirror.css</strong> High-contrast UI for smart mirror displays</li>
+            </ul>
+        </div>
+    </div>
+    
+    <h2>Database Schema & Models</h2>
+    <div class="box">
+        <h3>Key Models</h3>
+        <ul>
+            <li><strong>User (Django built-in + extensions):</strong>
+                <ul>
+                    <li>llm_provider: CharField (choices: local, openai, comet, custom)</li>
+                    <li>llm_api_key: EncryptedCharField (Fernet encryption)</li>
+                    <li>llm_model: CharField (e.g., claude-sonnet-4-5, llama3.2:3b)</li>
+                    <li>custom_api_base_url: URLField (for custom providers)</li>
+                    <li>ha_token: EncryptedCharField (Home Assistant long-lived token)</li>
+                    <li>room_permissions: JSONField (room access control for multi-zone)</li>
+                </ul>
+            </li>
+            <li><strong>Song:</strong>
+                <ul>
+                    <li>title, genre, mood, duration, bpm, key</li>
+                    <li>lyrics: TextField (nullable, LLM-generated or user-provided)</li>
+                    <li>audio_file: FileField (WAV/MP3, stored in media/)</li>
+                    <li>is_published: BooleanField (private vs public)</li>
+                    <li>room: ForeignKey (Room, nullable - for room-specific songs)</li>
+                    <li>voice_command: TextField (nullable - original voice input for reference)</li>
+                    <li>created_at, updated_at: DateTimeField (auto)</li>
+                </ul>
+            </li>
+            <li><strong>Room:</strong>
+                <ul>
+                    <li>name: CharField (e.g., "Living Room", "Kitchen")</li>
+                    <li>ha_entity_id: CharField (Home Assistant media_player entity ID)</li>
+                    <li>default_genre, default_mood: CharField (room context preferences)</li>
+                    <li>active_playlist: ForeignKey (Playlist, nullable)</li>
+                    <li>guest_access: BooleanField (allow guests to create songs)</li>
+                </ul>
+            </li>
+            <li><strong>Playlist:</strong>
+                <ul>
+                    <li>name: CharField</li>
+                    <li>room: ForeignKey (Room, nullable - null for global playlists)</li>
+                    <li>owner: ForeignKey (User, nullable - null for party mode)</li>
+                    <li>is_party_mode: BooleanField (multi-room synchronized playlist)</li>
+                    <li>songs: ManyToManyField (Song, through PlaylistSong with order)</li>
+                </ul>
+            </li>
+            <li><strong>Vote:</strong> user, song, vote_type (upvote/downvote), created_at</li>
+        </ul>
+    </div>
+    
+    <h2>AI Generation Pipeline</h2>
+    <div class="box">
+        <h3>Lyrics Generation Flow</h3>
+        <p style="font-size: 8pt; margin-bottom: 0.2cm;"><strong>Request → API → Celery Task → LLM Provider → Response → Database → Frontend</strong></p>
+        <ul>
+            <li><strong>Step 1:</strong> User submits song parameters (genre, mood, optional instructions)</li>
+            <li><strong>Step 2:</strong> Django view validates request, checks user's LLM provider settings</li>
+            <li><strong>Step 3:</strong> Celery task dispatched to background worker</li>
+            <li><strong>Step 4:</strong> LyricsGenerator selects provider:
+                <ul>
+                    <li><strong>Local:</strong> HTTP POST to Ollama (localhost:11434) with chat completion format</li>
+                    <li><strong>OpenAI:</strong> OpenAI library client.chat.completions.create()</li>
+                    <li><strong>Comet:</strong> OpenAI-compatible API with custom base_url</li>
+                    <li><strong>Custom:</strong> User-defined endpoint with OpenAI format</li>
+                </ul>
+            </li>
+            <li><strong>Step 5:</strong> Lyrics parsed from response, saved to Song model</li>
+            <li><strong>Step 6:</strong> Frontend polls or receives WebSocket notification</li>
+        </ul>
+        
+        <h3>Music Generation (ACE-Step v1.5)</h3>
+        <ul>
+            <li><strong>Model:</strong> acestep-v15-turbo (Transformer-based diffusion)</li>
+            <li><strong>Input:</strong> Text embeddings (Qwen3-Embedding-0.6B) + genre/mood tokens</li>
+            <li><strong>Process:</strong> Iterative denoising with 50 steps, 5Hz latent representation</li>
+            <li><strong>VAE Decoder:</strong> Converts 5Hz latents → 44.1kHz audio waveform</li>
+            <li><strong>Output:</strong> WAV file (32-bit float) saved to media/songs/</li>
+            <li><strong>Inference Time:</strong> ~15-30s on GPU (RTX 3090), ~2-5min on CPU</li>
+        </ul>
+    </div>
+    
+    <h2>Security Architecture</h2>
+    <div class="grid">
+        <div class="box">
+            <h3>API Key Protection (Triple-Layer)</h3>
+            <ul>
+                <li><strong>Layer 1 - Database:</strong> EncryptedCharField with Fernet (AES-128-CBC)</li>
+                <li><strong>Layer 2 - Serializer:</strong> write_only=True prevents keys in GET responses</li>
+                <li><strong>Layer 3 - Override:</strong> to_representation() explicitly removes key fields</li>
+                <li><strong>Key Derivation:</strong> ENCRYPTION_KEY from .env (must be 44-char base64)</li>
+                <li><strong>Frontend:</strong> API key inputs always blank, never pre-populated</li>
+            </ul>
+        </div>
+        <div class="box">
+            <h3>Authentication & Authorization</h3>
+            <ul>
+                <li><strong>JWT Tokens:</strong> Access token (15min TTL) + Refresh token (7 days)</li>
+                <li><strong>Storage:</strong> localStorage (access) + httpOnly cookie (refresh)</li>
+                <li><strong>Endpoints:</strong> /api/auth/login, /api/auth/register, /api/auth/refresh</li>
+                <li><strong>Middleware:</strong> JWTAuthentication, IsAuthenticated permissions</li>
+                <li><strong>CORS:</strong> Configured for frontend origin (localhost:8000)</li>
+            </ul>
+        </div>
+    </div>
+    
+    <h2>Async Task Processing</h2>
+    <div class="box">
+        <h3>Celery Configuration</h3>
+        <ul>
+            <li><strong>Broker:</strong> Redis (localhost:6379, db=0)</li>
+            <li><strong>Backend:</strong> Redis result backend (db=1)</li>
+            <li><strong>Worker Pool:</strong> solo (Windows), prefork (Linux/Mac)</li>
+            <li><strong>Concurrency:</strong> MAX_CONCURRENT_TASKS setting (default: 3)</li>
+            <li><strong>Task Routing:</strong> generation.* → generation queue</li>
+            <li><strong>Task Serialization:</strong> JSON (security best practice)</li>
+            <li><strong>Result Expiry:</strong> 1 hour (configurable)</li>
+        </ul>
+        
+        <h3>Task Types</h3>
+        <ul>
+            <li><strong>generate_lyrics_task:</strong> Async LLM inference (5-15s)</li>
+            <li><strong>generate_music_task:</strong> Async ACE-Step inference (15s-5min)</li>
+            <li><strong>cleanup_old_files_task:</strong> Periodic task to remove unpublished songs >30 days</li>
+        </ul>
+    </div>
+    
     <div class="footer">
-        Created: February 2026 | Retro Cassette Music | YorikNoir
+        <strong>Retro Cassette Music - Technical Reference v1.0</strong><br>
+        Architecture: Django 5.0 + DRF + Celery + Redis + PyTorch + ACE-Step v1.5<br>
+        LLM Support: Ollama (Llama 3.2), OpenAI (GPT-3.5/4), Comet API (Claude), Custom Endpoints<br>
+        Created: February 2026 | YorikNoir | MIT License
     </div>
 </body>
 </html>

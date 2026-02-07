@@ -16,8 +16,18 @@ REM Activate virtual environment
 echo Activating virtual environment...
 call venv\Scripts\activate.bat
 
-REM Install dependencies
-echo Installing dependencies...
+REM Install PyTorch with CUDA support first
+echo.
+echo ================================================
+echo  Installing PyTorch with CUDA 12.1 support...
+echo  This may take several minutes...
+echo ================================================
+echo.
+pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu121
+
+REM Install remaining dependencies
+echo.
+echo Installing remaining dependencies...
 pip install -r requirements.txt
 
 REM Create .env if it doesn't exist
