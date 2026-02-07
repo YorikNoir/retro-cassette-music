@@ -2,7 +2,7 @@
 
 A retro-themed music generation platform powered by ACE-Step AI, featuring a nostalgic cassette player interface.
 
-📄 **[Technical Setup Documentation](Technical_Setup_Documentation.html)** - Quick reference guide for developers
+📄 **[Technical Setup Documentation](https://yoriknoir.github.io/retro-cassette-music/Technical_Setup_Documentation.html)** - Quick reference guide for developers
 
 ## Features
 
