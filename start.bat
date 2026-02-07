@@ -1,8 +1,13 @@
 @echo off
 REM Retro Cassette Music Generator - Start Script
+REM Usage: start.bat [debug]
+
+set DEBUG_MODE=False
+if "%1"=="debug" set DEBUG_MODE=True
 
 echo ========================================
 echo  Retro Cassette Music Generator
+if "%DEBUG_MODE%"=="True" echo  [DEBUG MODE ENABLED]
 echo ========================================
 echo.
 
@@ -44,12 +49,22 @@ echo  Starting Django Development Server
 echo ========================================
 echo.
 echo Server will be available at: http://localhost:8000
+if "%DEBUG_MODE%"=="True" echo [DEBUG] Verbose logging enabled
 echo.
 echo Starting Celery worker in separate window...
-start "Celery Worker" cmd /k "venv\Scripts\activate && celery -A config worker --loglevel=info --pool=solo"
+if "%DEBUG_MODE%"=="True" (
+    start "Celery Worker [DEBUG]" cmd /k "venv\Scripts\activate && celery -A config worker --loglevel=debug --pool=solo"
+) else (
+    start "Celery Worker" cmd /k "venv\Scripts\activate && celery -A config worker --loglevel=info --pool=solo"
+)
 echo.
 echo Press Ctrl+C to stop the server
 echo.
 
-REM Start Django server
+if "%DEBUG_MODE%"=="True" (
+    set DJANGO_DEBUG_MODE=1
+    python manage.py runserver --verbosity 2
+) else (
+    python manage.py runserver
+)
 python manage.py runserver

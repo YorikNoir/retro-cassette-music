@@ -74,8 +74,28 @@ class API {
             headers: this.getHeaders(options.auth !== false),
         };
 
-        const response = await fetch(url, config);
-        return this.handleResponse(response);
+        // Debug logging
+        if (window.debug) {
+            window.debug.logRequest(config.method || 'GET', url, config.body);
+        }
+
+        try {
+            const response = await fetch(url, config);
+            const data = await this.handleResponse(response);
+            
+            // Debug logging
+            if (window.debug) {
+                window.debug.logResponse(url, response.status, data);
+            }
+            
+            return data;
+        } catch (error) {
+            // Debug logging
+            if (window.debug) {
+                window.debug.error(`Request failed: ${url}`, error);
+            }
+            throw error;
+        }
     }
 
     // Auth endpoints

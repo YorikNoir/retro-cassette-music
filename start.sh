@@ -1,7 +1,16 @@
 #!/bin/bash
+# Usage: ./start.sh [debug]
+
+DEBUG_MODE=false
+if [ "$1" = "debug" ]; then
+    DEBUG_MODE=true
+fi
 
 echo "========================================="
 echo " Retro Cassette Music - Starting Services"
+if [ "$DEBUG_MODE" = true ]; then
+    echo " [DEBUG MODE ENABLED]"
+fi
 echo "========================================="
 echo ""
 
@@ -37,13 +46,21 @@ echo " Starting Django Development Server"
 echo "========================================="
 echo ""
 echo "Server will be available at: http://localhost:8000"
+if [ "$DEBUG_MODE" = true ]; then
+    echo "[DEBUG] Verbose logging enabled"
+fi
 echo ""
 echo "Starting Celery worker in background..."
 
 # Start Celery worker in background
-celery -A config worker --loglevel=info &
+if [ "$DEBUG_MODE" = true ]; then
+    celery -A config worker --loglevel=debug &
+    echo "Celery worker started with PID: $! [DEBUG MODE]"
+else
+    celery -A config worker --loglevel=info &
+    echo "Celery worker started with PID: $!"
+fi
 CELERY_PID=$!
-echo "Celery worker started with PID: $CELERY_PID"
 echo $CELERY_PID > celery.pid
 
 echo ""
@@ -54,7 +71,12 @@ echo ""
 trap "echo ''; echo 'Stopping services...'; kill $CELERY_PID 2>/dev/null; rm -f celery.pid; exit 0" INT
 
 # Start Django server
-python manage.py runserver
+if [ "$DEBUG_MODE" = true ]; then
+    export DJANGO_DEBUG_MODE=1
+    python manage.py runserver --verbosity 2
+else
+    python manage.py runserver
+fi
 echo ""
 echo "Make sure Redis is running:"
 echo "  redis-server"
