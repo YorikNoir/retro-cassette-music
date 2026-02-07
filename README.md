@@ -20,7 +20,7 @@ This application is a **full-stack AI music generation platform** built with Dja
 - **Multi-Provider LLM Architecture**: Flexible lyrics generation supporting Local (Ollama), OpenAI, Comet API, and custom endpoints
 - **Privacy-First Design**: Full offline operation with local LLM option (Llama 3.2) - no external API calls required
 - **Production-Grade Security**: Fernet encryption for API keys, JWT authentication, CSRF protection
-- **Scalable Task Processing**: Celery + Redis for async music generation with concurrent task management
+- **Scalable Task Processing**: Built-in async task manager for music generation with concurrent task management
 - **Retro-Modern UX**: Nostalgic cassette player interface optimized for both web and smart mirror displays
 
 ---
@@ -29,8 +29,8 @@ This application is a **full-stack AI music generation platform** built with Dja
 
 ### **Backend**
 - **Framework**: Django 5.0.1 + Django REST Framework 3.14.0
-- **Task Queue**: Celery 5.3.4 with Redis broker for async processing
-- **AI/ML**: PyTorch 2.10, Transformers 5.1, ACE-Step v1.5 (music generation), Qwen3 Embedding
+- **Task Queue**: Background processing with Django task manager (async generation)
+- **AI/ML**: PyTorch 2.7.1 (CUDA 12.8), Transformers 4.57, ACE-Step v1.5 (music generation), Qwen3 Embedding
 - **Authentication**: JWT tokens (djangorestframework-simplejwt) + Home Assistant long-lived token support
 - **Database**: SQLite (development), PostgreSQL-ready (production scaling)
 - **Security**: Fernet symmetric encryption (django-encrypted-model-fields)
@@ -47,9 +47,8 @@ This application is a **full-stack AI music generation platform** built with Dja
 
 ### **Infrastructure**
 - **Deployment**: Gunicorn + Nginx reverse proxy, systemd services
-- **Caching**: Redis (song metadata, user sessions)
 - **File Storage**: Local media storage with S3-compatible backend support
-- **Monitoring**: Celery Flower for task monitoring, Django Debug Toolbar
+- **Monitoring**: Django Debug Toolbar, task status API endpoints
 
 ---
 
@@ -63,7 +62,7 @@ Home Assistant captures intent → Parse voice command
   ↓
 POST /api/ha/quick-song {voice_command, room_context}
   ↓
-Background Celery task → LLM lyrics + ACE-Step music generation
+Background task → LLM lyrics + ACE-Step music generation
   ↓
 Poll /api/ha/song-status/{task_id} → Complete (15-30s)
   ↓
@@ -85,6 +84,9 @@ TTS announcement + Stream to room speakers → Add to room playlist
 - Guest access control for temporary song creation
 - Party mode: Multi-room synchronized playlist across smart speakers
 - Context-aware defaults (room learns preferred genres/moods)
+
+![Bathroom Smart Mirror - Shower Karaoke Mode](images/bathroom_smart_display.webp)
+*Smart mirror in action: 7" display showing scrolling karaoke lyrics during morning shower routine*
 
 ---
 
@@ -125,23 +127,23 @@ TTS announcement + Stream to room speakers → Add to room playlist
 ## 🚀 Quick Start
 
 ### Prerequisites
-- **Python 3.10+** (tested on 3.10, 3.11)
+- **Python 3.10+** (tested on 3.10, 3.11, 3.12)
 - **16GB+ RAM** (8GB minimum for CPU-only inference)
-- **GPU with CUDA support** (optional, recommended for 10x faster generation)
-- **Redis 5.0+** (for Celery task queue)
+- **GPU with CUDA 12.8 support** (optional, recommended for 10x faster generation)
+- **10GB free disk space** (for PyTorch + ACE-Step models)
 
 ### One-Command Installation
 
 **Windows:**
 ```powershell
-# Clone repository
-git clone https://github.com/YorikNoir/retro-cassette-music.git
-cd retro-cassette-music
+# Clone PARENT repository (includes ACE-Step models)
+git clone https://github.com/YorikNoir/stepACE-Step-1.5.git
+cd stepACE-Step-1.5\retro-cassette-music
 
-# Setup (creates venv, installs deps, runs migrations)
+# Setup (installs ACE-Step + Django dependencies, runs migrations)
 setup.bat
 
-# Start Django + Celery (opens 2 terminal windows)
+# Start Django development server
 start.bat
 
 # Visit http://localhost:8000
@@ -149,15 +151,15 @@ start.bat
 
 **Linux/Mac:**
 ```bash
-# Clone repository
-git clone https://github.com/YorikNoir/retro-cassette-music.git
-cd retro-cassette-music
+# Clone PARENT repository (includes ACE-Step models)
+git clone https://github.com/YorikNoir/stepACE-Step-1.5.git
+cd stepACE-Step-1.5/retro-cassette-music
 
 # Setup
 chmod +x setup.sh start.sh stop.sh
 ./setup.sh
 
-# Start (background processes)
+# Start development server
 ./start.sh
 
 # Visit http://localhost:8000
@@ -199,33 +201,42 @@ Downloads Ollama + Llama 3.2 3B (~2GB) for offline lyrics generation.
 ## 📁 Project Structure
 
 ```
-retro-cassette-music/
-├── apps/                           # Django applications (modular architecture)
-│   ├── accounts/                   # User auth, JWT, encrypted API keys, room permissions
-│   ├── songs/                      # Song CRUD, voting system, publishing logic
-│   ├── library/                    # Playlists, collections, filtering, room management
-│   ├── generation/                 # Celery tasks, LLM integration, ACE-Step inference
-│   └── homeassistant/              # Home Assistant API endpoints (voice commands, rooms)
-├── config/                         # Project configuration
-│   ├── settings.py                 # Django settings, middleware, LLM providers
-│   ├── urls.py                     # URL routing, API endpoints
-│   └── celery.py                   # Async task queue configuration
-├── static/                         # Frontend assets
-│   ├── css/                        # Retro theme + smart mirror styles
-│   ├── js/                         # Vanilla JavaScript (api.js, auth.js, player.js, voice.js)
-│   └── images/                     # UI assets
-├── templates/                      # HTML templates
-│   ├── index.html                  # Main SPA with cassette player UI
-│   └── smartmirror.html            # Touchscreen-optimized interface
-├── media/                          # User-generated songs (WAV/MP3)
-├── setup.bat / setup.sh            # One-command initial setup
-├── start.bat / start.sh            # Launch Django + Celery
-├── stop.bat / stop.sh              # Stop all services
-├── install_local_llm.bat/.sh       # Install Ollama + Llama 3.2
-├── requirements.txt                # Python dependencies
-├── .env.example                    # Environment variables template
-└── Technical_Setup_Documentation.html  # Detailed architecture docs
+stepACE-Step-1.5/                   # PARENT: AI music generation engine
+├── acestep/                        # ACE-Step model inference code
+│   ├── inference.py                # Model loading, generation pipeline
+│   ├── acestep_v15_pipeline.py     # Transformer diffusion pipeline
+│   └── ...                         # Audio processing, VAE, utilities
+├── checkpoints/                    # Pre-trained AI models (3.5GB)
+│   ├── acestep-v15-turbo/         # Music generation model
+│   ├── acestep-5Hz-lm-1.7B/       # Language model for music
+│   └── vae/                        # Audio VAE encoder/decoder
+├── requirements.txt                # ACE-Step dependencies (PyTorch, transformers, etc.)
+└── retro-cassette-music/           # Django web application (THIS PROJECT)
+    ├── apps/                       # Django applications (modular architecture)
+    │   ├── accounts/               # User auth, JWT, encrypted API keys
+    │   ├── songs/                  # Song CRUD, voting, publishing
+    │   ├── library/                # Playlists, collections, room management
+    ├── generation/                 # Background tasks, LLM integration, ACE-Step wrapper
+    │   └── homeassistant/          # Home Assistant API endpoints
+    ├── config/                     # Django project configuration
+    │   ├── settings.py             # Django settings, middleware, LLM providers
+    │   ├── urls.py                 # URL routing, API endpoints
+    │   └── celery.py               # Async task queue configuration
+    ├── static/                     # Frontend assets (CSS, JS, images)
+    ├── templates/                  # HTML templates (cassette UI, smart mirror)
+    ├── media/                      # User-generated songs (WAV/MP3)
+    ├── venv/                       # Virtual environment (auto-created)
+    ├── setup.bat / setup.sh        # One-command setup (installs BOTH requirements.txt)
+    ├── start.bat / start.sh        # Launch Django development server
+    ├── requirements.txt            # Django app dependencies
+    ├── .env.example                # Environment variables template
+    └── Technical_Setup_Documentation.html
 ```
+
+**Dependency Structure:**
+- **Parent `requirements.txt`**: ACE-Step AI engine (PyTorch 2.7.1, transformers, loguru, einops, vector-quantize-pytorch)
+- **App `requirements.txt`**: Django web framework (DRF, JWT, CORS, encryption)
+- **setup.bat/setup.sh**: Installs BOTH automatically in correct order
 
 ---
 
@@ -252,16 +263,13 @@ ENABLE_VOICE_COMMANDS=True
 DEFAULT_ROOM=Living Room
 
 # Performance
-MAX_CONCURRENT_TASKS=3                   # Celery concurrency
+MAX_CONCURRENT_TASKS=3                   # Task concurrency
 USE_GPU=True                             # CUDA acceleration
 CUDA_VISIBLE_DEVICES=0
 
 # Database (defaults to SQLite)
 DATABASE_URL=sqlite:///db.sqlite3
 # DATABASE_URL=postgresql://user:pass@localhost:5432/retro_music
-
-# Redis (for Celery)
-CELERY_BROKER_URL=redis://localhost:6379/0
 ```
 
 **Generate encryption key:**
@@ -289,9 +297,8 @@ python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().d
 
 ### Backend
 - **Query Optimization**: `select_related()`, `prefetch_related()` for foreign keys
-- **Redis Caching**: Popular songs cached (5min TTL)
 - **Database Indexing**: user_id, created_at, is_published
-- **Model Reuse**: ACE-Step loaded once per Celery worker
+- **Model Reuse**: ACE-Step loaded once per worker thread
 
 ### Frontend
 - **Lazy Loading**: IntersectionObserver for images
@@ -301,7 +308,7 @@ python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().d
 
 ### AI Inference
 - **GPU Acceleration**: CUDA support for 10x faster generation
-- **Batch Processing**: Celery async tasks with configurable concurrency
+- **Batch Processing**: Async task manager with configurable concurrency
 - **Model Caching**: VAE decoder cached in memory
 
 ---
@@ -330,11 +337,6 @@ python manage.py createsuperuser         # Admin account
 python manage.py shell                   # Interactive shell
 python manage.py collectstatic           # Gather static files
 
-# Celery monitoring
-celery -A config inspect active          # Active tasks
-celery -A config flower                  # Web UI (localhost:5555)
-celery -A config purge                   # Clear queue
-
 # Ollama management
 ollama list                              # Installed models
 ollama pull llama3.2:3b                  # Download model
@@ -351,14 +353,13 @@ ollama ps                                # Running models
 - [ ] Generate new `SECRET_KEY` and `ENCRYPTION_KEY`
 - [ ] Configure `ALLOWED_HOSTS` with domain
 - [ ] Switch to PostgreSQL (`DATABASE_URL`)
-- [ ] Set up Redis persistence (AOF enabled)
 - [ ] Configure CORS (`CORS_ALLOWED_ORIGINS`)
 - [ ] Run `python manage.py collectstatic`
 - [ ] Run `python manage.py migrate`
 - [ ] Set up Gunicorn + Nginx
-- [ ] Configure systemd services for Django + Celery
+- [ ] Configure systemd service for Django
 - [ ] Enable SSL with Let's Encrypt
-- [ ] Set up monitoring (Sentry, Flower)
+- [ ] Set up monitoring (Sentry, logging)
 
 ### Server Configuration
 
@@ -448,7 +449,7 @@ MIT License - see [LICENSE](LICENSE) file
 This project showcases expertise in:
 - **Full-Stack Development**: Django backend + Vanilla JS frontend SPA
 - **AI/ML Integration**: PyTorch model deployment, multi-provider LLM orchestration
-- **Distributed Systems**: Celery task queue, Redis caching, async processing
+- **Distributed Systems**: Background task processing, async operations
 - **Smart Home IoT**: Home Assistant REST API, voice command parsing, multi-zone control
 - **Security Engineering**: Encryption, JWT, CSRF protection, input validation
 - **DevOps**: Docker-ready, systemd services, Nginx reverse proxy, production deployment

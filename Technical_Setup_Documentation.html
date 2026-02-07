@@ -182,8 +182,8 @@
         <p><strong>Architecture Pattern:</strong> Monolithic Django application with async task processing</p>
         <ul>
             <li><strong>Web Framework:</strong> Django 5.0.1 with Django REST Framework 3.14.0</li>
-            <li><strong>Task Queue:</strong> Celery 5.3.4 with Redis 5.0.1 broker</li>
-            <li><strong>AI/ML Stack:</strong> PyTorch 2.10, Transformers 5.1, ACE-Step v1.5</li>
+            <li><strong>Task Queue:</strong> Built-in async task manager with background processing</li>
+            <li><strong>AI/ML Stack:</strong> PyTorch 2.7.1 (CUDA 12.8), Transformers 4.57, ACE-Step v1.5</li>
             <li><strong>Authentication:</strong> JWT (djangorestframework-simplejwt) + Django sessions + Home Assistant token support</li>
             <li><strong>Database:</strong> SQLite (dev), PostgreSQL-ready (prod)</li>
             <li><strong>Encryption:</strong> Fernet (symmetric encryption) for API keys at rest</li>
@@ -195,11 +195,11 @@
         <div>
             <strong>Initial Setup (Windows):</strong>
             <div class="command-box">setup.bat</div>
-            <p style="font-size: 8pt; margin-top: 0.1cm;">Creates venv, installs dependencies, runs migrations, creates .env if missing</p>
+            <p style="font-size: 8pt; margin-top: 0.1cm;">Creates venv, installs ACE-Step dependencies (PyTorch 2.7.1, models) + Django dependencies, runs migrations, creates .env</p>
             
             <strong>Start All Services (Windows):</strong>
             <div class="command-box">start.bat</div>
-            <p style="font-size: 8pt; margin-top: 0.1cm;">Launches Django (localhost:8000) + Celery worker in separate windows</p>
+            <p style="font-size: 8pt; margin-top: 0.1cm;">Launches Django development server (localhost:8000) with background task processing</p>
             
             <strong>Install Local LLM (Windows):</strong>
             <div class="command-box">install_local_llm.bat</div>
@@ -208,10 +208,11 @@
         <div>
             <strong>Initial Setup (Linux/Mac):</strong>
             <div class="command-box">chmod +x setup.sh && ./setup.sh</div>
+            <p style="font-size: 8pt; margin-top: 0.1cm;">Creates venv, installs ACE-Step dependencies (PyTorch 2.7.1, models) + Django dependencies, runs migrations, creates .env</p>
             
             <strong>Start All Services (Linux/Mac):</strong>
             <div class="command-box">chmod +x start.sh && ./start.sh</div>
-            <p style="font-size: 8pt; margin-top: 0.1cm;">Runs Django + Celery as background processes with logging</p>
+            <p style="font-size: 8pt; margin-top: 0.1cm;">Runs Django development server with background task processing</p>
             
             <strong>Install Local LLM (Linux/Mac):</strong>
             <div class="command-box">chmod +x install_local_llm.sh && ./install_local_llm.sh</div>
@@ -249,7 +250,6 @@
         <li><strong>Admin Panel:</strong> http://localhost:8000/admin (Django admin interface)</li>
         <li><strong>API Root:</strong> http://localhost:8000/api/ (DRF browsable API)</li>
         <li><strong>API Documentation:</strong> http://localhost:8000/api/docs/ (Swagger/OpenAPI)</li>
-        <li><strong>Flower (Celery):</strong> http://localhost:5555 (if installed: pip install flower)</li>
         <li><strong>Ollama API:</strong> http://localhost:11434/api/tags (list installed models)</li>
         <li><strong>GitHub Repo:</strong> https://github.com/YorikNoir/retro-cassette-music</li>
     </ul>
@@ -318,7 +318,7 @@
         <ul style="font-size: 8pt;">
             <li><strong>Step 1:</strong> Home Assistant captures voice command, extracts intent and entities</li>
             <li><strong>Step 2:</strong> Automation sends POST to /api/ha/quick-song with parsed parameters</li>
-            <li><strong>Step 3:</strong> Backend validates request, creates Celery task for song generation</li>
+            <li><strong>Step 3:</strong> Backend validates request, creates background task for song generation</li>
             <li><strong>Step 4:</strong> Home Assistant polls /api/ha/song-status/{task_id} every 3s</li>
             <li><strong>Step 5:</strong> When complete, automation triggers TTS announcement and plays song</li>
             <li><strong>Step 6:</strong> Song automatically added to room playlist for future playback</li>

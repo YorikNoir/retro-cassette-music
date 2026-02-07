@@ -14,18 +14,22 @@ fi
 echo "Activating virtual environment..."
 source venv/bin/activate
 
-# Install PyTorch with CUDA support first
+# Install ACE-Step dependencies from parent project
 echo ""
 echo "================================================"
-echo " Installing PyTorch with CUDA 12.1 support..."
-echo " This may take several minutes..."
+echo " Installing ACE-Step AI Music Generation Engine"
+echo " (PyTorch 2.7.1 + CUDA 12.8 + Models)"
+echo " This may take 5-10 minutes..."
 echo "================================================"
 echo ""
-pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu121
+pip install -r ../requirements.txt
 
-# Install remaining dependencies
+# Install Django app dependencies
 echo ""
-echo "Installing remaining dependencies..."
+echo "================================================"
+echo " Installing Django web application dependencies..."
+echo "================================================"
+echo ""
 pip install -r requirements.txt
 
 # Create .env if it doesn't exist
