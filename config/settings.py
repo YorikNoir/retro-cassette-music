@@ -165,6 +165,11 @@ CUDA_VISIBLE_DEVICES = env('CUDA_VISIBLE_DEVICES', default='0')
 # Encryption for API keys
 ENCRYPTION_KEY = env('ENCRYPTION_KEY', default=None)
 
+# Field encryption (for django-encrypted-model-fields)
+# Generate a secure key for production using: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+# Development default key (CHANGE IN PRODUCTION!)
+FIELD_ENCRYPTION_KEY = env('ENCRYPTION_KEY', default='8xyRCz-6DvW4H7nL9qN2Y3mP5tB6uJ4kE1sA7dF8gH0=')
+
 # Celery Configuration
 CELERY_BROKER_URL = env('CELERY_BROKER_URL', default='redis://localhost:6379/0')
 CELERY_RESULT_BACKEND = env('CELERY_RESULT_BACKEND', default='redis://localhost:6379/0')

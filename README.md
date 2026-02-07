@@ -2,6 +2,8 @@
 
 A retro-themed music generation platform powered by ACE-Step AI, featuring a nostalgic cassette player interface.
 
+📄 **[Technical Setup Documentation](Technical_Setup_Documentation.html)** - Quick reference guide for developers
+
 ## Features
 
 - 🎵 **AI Music Generation**: Create songs using ACE-Step v1.5
@@ -20,60 +22,88 @@ A retro-themed music generation platform powered by ACE-Step AI, featuring a nos
 - **Database**: SQLite (development) / PostgreSQL (production)
 - **Authentication**: Django Auth + JWT
 
-## Installation
+## Quick Start
 
 ### Prerequisites
 
 - Python 3.10+
-- GPU with CUDA support (recommended)
+- Redis (for Celery task queue)
+- GPU with CUDA support (recommended for faster generation)
 - 16GB+ RAM
 
-### Setup
+### Installation & Running
 
-1. Clone the repository:
+**Windows:**
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/YorikNoir/retro-cassette-music.git
 cd retro-cassette-music
+setup.bat    # One-time setup: venv, dependencies, migrations
+start.bat    # Start Django + Celery (opens 2 windows)
 ```
 
-2. Create a virtual environment:
+**Linux/Mac:**
 ```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+git clone https://github.com/YorikNoir/retro-cassette-music.git
+cd retro-cassette-music
+chmod +x setup.sh start.sh stop.sh
+./setup.sh   # One-time setup: venv, dependencies, migrations
+./start.sh   # Start Django + Celery (background process)
 ```
 
-3. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
+**Stop all services:**
+- Windows: `stop.bat` or close the windows
+- Linux/Mac: `./stop.sh` or Ctrl+C in the terminal
 
-4. Set up environment variables:
-```bash
-cp .env.example .env
-# Edit .env with your settings
-```
+**Visit:** [http://localhost:8000](http://localhost:8000)
 
-5. Run migrations:
-```bash
-python manage.py migrate
-```
+### Manual Setup (Advanced)
 
-6. Create a superuser:
-```bash
-python manage.py createsuperuser
-```
+If you prefer manual setup or need more control:
 
-7. Download AI models:
-```bash
-python manage.py download_models
-```
+1. **Clone and navigate:**
+   ```bash
+   git clone https://github.com/YorikNoir/retro-cassette-music.git
+   cd retro-cassette-music
+   ```
 
-8. Run the development server:
-```bash
-python manage.py runserver
-```
+2. **Create virtual environment:**
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # Windows: venv\Scripts\activate
+   ```
 
-Visit `http://localhost:8000` to start creating music!
+3. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Configure environment:**
+   ```bash
+   cp .env.example .env
+   # Edit .env - IMPORTANT: Set ENCRYPTION_KEY
+   # Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+   ```
+
+5. **Initialize database:**
+   ```bash
+   python manage.py migrate
+   python manage.py createsuperuser  # Optional: admin access
+   ```
+
+6. **Download AI models:**
+   ```bash
+   python manage.py download_models
+   ```
+
+7. **Start services manually:**
+   ```bash
+   # Terminal 1: Django server
+   python manage.py runserver
+   
+   # Terminal 2: Celery worker
+   celery -A config worker --loglevel=info --pool=solo  # Windows
+   celery -A config worker --loglevel=info              # Linux/Mac
+   ```
 
 ## Project Structure
 
@@ -82,21 +112,32 @@ retro-cassette-music/
 ├── manage.py
 ├── requirements.txt
 ├── .env.example
-├── config/                 # Django settings
+├── start.bat / start.sh           # Start all services
+├── stop.bat / stop.sh             # Stop all services  
+├── setup.bat / setup.sh           # Initial setup
+├── Technical_Setup_Documentation.html  # Quick reference
+├── config/                        # Django settings
 │   ├── settings.py
 │   ├── urls.py
-│   └── wsgi.py
+│   └── celery.py                  # Celery configuration
 ├── apps/
-│   ├── accounts/          # User authentication
-│   ├── songs/             # Song creation & management
-│   ├── library/           # User music library
-│   └── generation/        # AI model integration
+│   ├── accounts/                  # User authentication
+│   ├── songs/                     # Song CRUD & voting
+│   ├── library/                   # User music library
+│   └── generation/                # AI generation tasks
 ├── static/
-│   ├── css/              # Retro cassette styles
-│   ├── js/               # Frontend logic
-│   └── images/           # UI assets
-├── templates/            # HTML templates
-└── media/               # User-generated songs
+│   ├── css/                       # Retro cassette styles
+│   │   ├── main.css
+│   │   └── cassette.css
+│   ├── js/                        # Vanilla JavaScript
+│   │   ├── api.js
+│   │   ├── auth.js
+│   │   ├── songs.js
+│   │   └── player.js
+│   └── images/                    # UI assets
+├── templates/                     # HTML templates
+│   └── index.html                 # Single-page app
+└── media/                         # User-generated content
 ```
 
 ## Usage
@@ -128,6 +169,25 @@ python manage.py test
 black .
 flake8 .
 ```
+
+### Project Scripts
+
+| Script | Platform | Purpose |
+|--------|----------|---------|
+| `setup.bat` / `setup.sh` | Win / Unix | One-time setup: venv, deps, migrations |
+| `start.bat` / `start.sh` | Win / Unix | Start Django + Celery together |
+| `stop.bat` / `stop.sh` | Win / Unix | Stop all services |
+
+### Environment Variables
+
+Key settings in `.env`:
+
+- `SECRET_KEY` - Django secret key
+- `ENCRYPTION_KEY` - **Required!** Fernet key for encrypted fields
+- `DEBUG` - Enable/disable debug mode
+- `MODELS_PATH` - Path to ACE-Step model files
+- `CELERY_BROKER_URL` - Redis connection (default: `redis://localhost:6379/0`)
+- `OPENAI_API_KEY` - Optional: for default lyrics generation
 
 ## License
 

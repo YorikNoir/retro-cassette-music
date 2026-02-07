@@ -1,54 +1,60 @@
 #!/bin/bash
-# Quick start script for development
 
-echo "🎵 Retro Cassette Music Generator - Quick Start"
-echo "==============================================="
-
-# Check if virtual environment exists
-if [ ! -d "venv" ]; then
-    echo "Creating virtual environment..."
-    python3 -m venv venv
-fi
+echo "========================================="
+echo " Retro Cassette Music - Starting Services"
+echo "========================================="
+echo ""
 
 # Activate virtual environment
-echo "Activating virtual environment..."
-source venv/bin/activate
+if [ -d "venv" ]; then
+    source venv/bin/activate
+else
+    echo "Error: Virtual environment not found!"
+    echo "Please run: python3 -m venv venv"
+    exit 1
+fi
 
-# Install dependencies
-echo "Installing dependencies..."
-pip install -r requirements.txt
-
-# Create .env if it doesn't exist
-if [ ! -f ".env" ]; then
-    echo "Creating .env file..."
+# Create .env from example if it doesn't exist
+if [ ! -f .env ]; then
+    echo "Creating .env file from .env.example..."
     cp .env.example .env
-    echo "⚠️  Please edit .env file with your settings!"
+    echo "Please edit .env with your settings!"
 fi
 
 # Run migrations
+echo ""
 echo "Running database migrations..."
 python manage.py migrate
 
 # Collect static files
+echo ""
 echo "Collecting static files..."
 python manage.py collectstatic --noinput
 
-# Create superuser if needed
 echo ""
-echo "Do you want to create a superuser? (y/n)"
-read -r create_superuser
-if [ "$create_superuser" = "y" ]; then
-    python manage.py createsuperuser
-fi
+echo "========================================="
+echo " Starting Django Development Server"
+echo "========================================="
+echo ""
+echo "Server will be available at: http://localhost:8000"
+echo ""
+echo "Starting Celery worker in background..."
+
+# Start Celery worker in background
+celery -A config worker --loglevel=info &
+CELERY_PID=$!
+echo "Celery worker started with PID: $CELERY_PID"
+echo $CELERY_PID > celery.pid
 
 echo ""
-echo "✅ Setup complete!"
+echo "Press Ctrl+C to stop the server"
 echo ""
-echo "To start the development server:"
-echo "  python manage.py runserver"
-echo ""
-echo "To start Celery worker (for song generation):"
-echo "  celery -A config worker --loglevel=info"
+
+# Trap SIGINT to cleanup Celery worker
+trap "echo ''; echo 'Stopping services...'; kill $CELERY_PID 2>/dev/null; rm -f celery.pid; exit 0" INT
+
+# Start Django server
+python manage.py runserver
 echo ""
 echo "Make sure Redis is running:"
 echo "  redis-server"
