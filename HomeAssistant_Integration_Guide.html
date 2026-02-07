@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Assistant Integration - Smart Home Music Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=VT323&display=swap" rel="stylesheet">
+    <style>
+        @page {
+            size: A4;
+            margin: 1.5cm;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-size: 9pt;
+            line-height: 1.4;
+            color: #2d3748;
+            background: white;
+            padding: 0.8cm 1cm;
+        }
+        
+        h1 {
+            font-size: 20pt;
+            font-weight: 700;
+            color: #000;
+            margin-bottom: 0.3cm;
+            border-bottom: 4px solid transparent;
+            border-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-image-slice: 1;
+            padding-bottom: 0.2cm;
+        }
+        
+        h2 {
+            font-size: 12pt;
+            font-weight: 700;
+            color: #667eea;
+            margin-top: 0.5cm;
+            margin-bottom: 0.2cm;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 0.1cm;
+        }
+        
+        h3 {
+            font-size: 10pt;
+            font-weight: 700;
+            color: #000;
+            margin-top: 0.3cm;
+            margin-bottom: 0.15cm;
+        }
+        
+        ul {
+            margin-left: 0.5cm;
+            margin-bottom: 0.3cm;
+        }
+        
+        li {
+            margin-bottom: 0.1cm;
+            line-height: 1.5;
+        }
+        
+        strong {
+            color: #000;
+            font-weight: 700;
+        }
+        
+        code {
+            background: #f0f0f0;
+            padding: 0.05cm 0.15cm;
+            border: 1px solid #667eea;
+            border-radius: 2px;
+            font-family: 'VT323', 'Courier New', monospace;
+            font-size: 9pt;
+            color: #764ba2;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5cm;
+            margin-bottom: 0.3cm;
+        }
+        
+        .box {
+            background: none;
+            border: 2px solid #667eea;
+            padding: 0.3cm;
+            border-radius: 6px;
+        }
+        
+        .box h3 {
+            font-size: 9pt;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 0.15cm;
+            margin-top: 0;
+            border-bottom: 1px dashed #667eea;
+            padding-bottom: 0.1cm;
+        }
+        
+        .box p, .box ul {
+            font-size: 8.5pt;
+            margin: 0;
+        }
+        
+        .box ul {
+            margin-left: 0.4cm;
+        }
+        
+        .box li {
+            margin-bottom: 0.05cm;
+        }
+        
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border: 3px solid #667eea;
+            padding: 0.4cm;
+            border-radius: 8px;
+            margin-bottom: 0.4cm;
+        }
+        
+        .command-box {
+            background: #1a1a2e;
+            color: #e94560;
+            border: 2px solid #667eea;
+            padding: 0.2cm 0.3cm;
+            border-radius: 4px;
+            font-family: 'VT323', 'Courier New', monospace;
+            font-size: 9pt;
+            margin: 0.15cm 0;
+        }
+        
+        .home-layout {
+            background: #f8f9fa;
+            border: 3px solid #667eea;
+            padding: 0.5cm;
+            border-radius: 8px;
+            margin: 0.3cm 0;
+            position: relative;
+        }
+        
+        .room {
+            background: white;
+            border: 2px solid #667eea;
+            padding: 0.3cm;
+            margin: 0.2cm;
+            border-radius: 4px;
+            position: relative;
+        }
+        
+        .room h4 {
+            font-size: 9pt;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 0.1cm;
+            font-family: 'VT323', monospace;
+        }
+        
+        .device {
+            font-size: 7.5pt;
+            padding: 0.1cm;
+            margin: 0.05cm 0;
+            background: rgba(102, 126, 234, 0.1);
+            border-left: 3px solid #764ba2;
+            border-radius: 2px;
+        }
+        
+        .device-icon {
+            display: inline-block;
+            width: 0.4cm;
+            height: 0.4cm;
+            margin-right: 0.1cm;
+            vertical-align: middle;
+        }
+        
+        .speaker { color: #e94560; }
+        .mirror { color: #667eea; }
+        .server { color: #764ba2; }
+        
+        .flow-diagram {
+            background: white;
+            border: 2px solid #667eea;
+            padding: 0.4cm;
+            border-radius: 6px;
+            margin: 0.3cm 0;
+        }
+        
+        .flow-step {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-left: 4px solid #667eea;
+            padding: 0.2cm;
+            margin: 0.15cm 0;
+            border-radius: 3px;
+            font-size: 8.5pt;
+        }
+        
+        .flow-arrow {
+            text-align: center;
+            color: #764ba2;
+            font-weight: 700;
+            font-size: 10pt;
+            margin: 0.1cm 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0.3cm 0;
+            font-size: 8.5pt;
+        }
+        
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.15cm;
+            text-align: left;
+            font-weight: 700;
+        }
+        
+        td {
+            border: 1px solid #667eea;
+            padding: 0.15cm;
+        }
+        
+        tr:nth-child(even) {
+            background: rgba(102, 126, 234, 0.05);
+        }
+        
+        .footer {
+            margin-top: 0.5cm;
+            padding-top: 0.3cm;
+            border-top: 3px solid transparent;
+            border-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-image-slice: 1;
+            font-size: 7.5pt;
+            color: #000;
+            text-align: center;
+        }
+        
+        .retro-header {
+            font-family: 'VT323', monospace;
+            font-size: 14pt;
+            color: #e94560;
+            text-align: center;
+            margin-bottom: 0.2cm;
+            text-shadow: 2px 2px 0px rgba(102, 126, 234, 0.3);
+        }
+        
+        @media print {
+            body {
+                padding: 0;
+            }
+            
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="retro-header">♪♫ SMART HOME AI MUSIC GENERATOR ♫♪</div>
+    <h1>Home Assistant Integration Guide</h1>
+    
+    <div class="highlight-box">
+        <h3 style="margin-top: 0;">System Overview</h3>
+        <p style="font-size: 8.5pt; margin-bottom: 0.2cm;">This document details the Home Assistant integration for the Smart Home AI Music Generator, including voice command workflows, multi-room playlist management, and party mode orchestration across a real-world smart home deployment.</p>
+        <p style="font-size: 8pt;"><strong>Hardware Setup:</strong> Mac Mini M1 (Home Assistant server) + Desktop PC with RTX 3090 (AI music generation) + Multi-room smart speakers + Smart mirror touchscreen interface</p>
+    </div>
+    
+    <h2>Example Home Layout</h2>
+    
+    <div class="home-layout">
+        <h3 style="text-align: center; color: #667eea; margin-bottom: 0.3cm;">Personal Smart Home: 3-Bedroom Apartment</h3>
+        
+        <div class="grid">
+            <div class="room">
+                <h4>🏠 Living Room (Primary Zone)</h4>
+                <div class="device">
+                    <span class="device-icon speaker">🔊</span> <strong>Sonos Arc</strong> (soundbar, stereo pair)
+                </div>
+                <div class="device">
+                    <span class="device-icon speaker">🔊</span> <strong>Google Home Max</strong> (backup speaker)
+                </div>
+                <div class="device">
+                    <span class="device-icon mirror">📱</span> <strong>Smart Mirror 32"</strong> (music control UI)
+                </div>
+                <p style="font-size: 7pt; margin-top: 0.1cm; color: #666;">Default playlist: Ambient/Jazz mix, guest access enabled</p>
+            </div>
+            
+            <div class="room">
+                <h4>🍳 Kitchen</h4>
+                <div class="device">
+                    <span class="device-icon speaker">🔊</span> <strong>Google Nest Audio</strong> (ceiling-mounted)
+                </div>
+                <div class="device">
+                    <span class="device-icon mirror">📱</span> <strong>Echo Show 8</strong> (recipe display + music control)
+                </div>
+                <p style="font-size: 7pt; margin-top: 0.1cm; color: #666;">Default playlist: Upbeat pop/rock, auto-generated morning playlists</p>
+            </div>
+            
+            <div class="room">
+                <h4>🛏️ Master Bedroom</h4>
+                <div class="device">
+                    <span class="device-icon speaker">🔊</span> <strong>Sonos One SL</strong> (stereo pair)
+                </div>
+                <div class="device">
+                    <span class="device-icon">🎙️</span> <strong>Google Nest Mini</strong> (voice control)
+                </div>
+                <p style="font-size: 7pt; margin-top: 0.1cm; color: #666;">Default playlist: Relaxing/Sleep music, guest access disabled</p>
+            </div>
+            
+            <div class="room">
+                <h4>📚 Home Office</h4>
+                <div class="device">
+                    <span class="device-icon speaker">🔊</span> <strong>HomePod Mini</strong> (desk speaker)
+                </div>
+                <div class="device">
+                    <span class="device-icon server">💻</span> <strong>Desktop PC (RTX 3090)</strong> - AI generation server
+                </div>
+                <p style="font-size: 7pt; margin-top: 0.1cm; color: #666;">Default playlist: Lo-fi study music, 24/7 ambient tracks</p>
+            </div>
+            
+            <div class="room">
+                <h4>🛁 Bathroom</h4>
+                <div class="device">
+                    <span class="device-icon speaker">🔊</span> <strong>JBL Flip 5</strong> (waterproof Bluetooth)
+                </div>
+                <p style="font-size: 7pt; margin-top: 0.1cm; color: #666;">Default playlist: Morning energy playlist, shower karaoke mode</p>
+            </div>
+            
+            <div class="room">
+                <h4>🎮 Guest Bedroom</h4>
+                <div class="device">
+                    <span class="device-icon speaker">🔊</span> <strong>Amazon Echo Dot</strong> (gen 4)
+                </div>
+                <p style="font-size: 7pt; margin-top: 0.1cm; color: #666;">Default playlist: None, guest full-access mode for custom songs</p>
+            </div>
+        </div>
+        
+        <div style="margin-top: 0.3cm; padding: 0.2cm; background: white; border: 2px dashed #667eea; border-radius: 4px;">
+            <h4 style="font-size: 8pt; color: #764ba2; margin-bottom: 0.1cm;">Central Control Hub</h4>
+            <div class="device">
+                <span class="device-icon server">🖥️</span> <strong>Mac Mini M1 (16GB RAM)</strong> - Home Assistant Core (living room cabinet)
+            </div>
+            <p style="font-size: 7pt; margin-top: 0.1cm;">Handles: Voice command routing, playlist management, speaker orchestration, user authentication</p>
+        </div>
+    </div>
+    
+    <h2>System Architecture</h2>
+    
+    <div class="box">
+        <h3>Distributed Processing Model</h3>
+        <ul style="font-size: 8pt;">
+            <li><strong>Mac Mini M1 (Home Assistant):</strong>
+                <ul>
+                    <li>Runs Home Assistant Core 24/7</li>
+                    <li>Handles voice command parsing and intent recognition</li>
+                    <li>Manages room routing and playlist orchestration</li>
+                    <li>Sends API requests to music generation server</li>
+                    <li>Lightweight tasks only (no AI inference)</li>
+                </ul>
+            </li>
+            <li><strong>Desktop PC with RTX 3090 (AI Server):</strong>
+                <ul>
+                    <li>Runs Django + Celery workers for music generation</li>
+                    <li>ACE-Step v1.5 inference (~15-30s per song on GPU)</li>
+                    <li>LLM lyrics generation (Llama 3.2 or Claude API)</li>
+                    <li>Handles heavy compute, triggered by Home Assistant</li>
+                    <li>Returns audio files + metadata to Home Assistant</li>
+                </ul>
+            </li>
+            <li><strong>Communication:</strong>
+                <ul>
+                    <li>REST API over local network (http://192.168.1.100:8000)</li>
+                    <li>Webhook callbacks for task completion notifications</li>
+                    <li>Redis queue for task status polling</li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+    
+    <h2>Operational Modes</h2>
+    
+    <div class="grid">
+        <div class="box">
+            <h3>1. Personal Mode (Default)</h3>
+            <ul>
+                <li>Active user: Homeowner account</li>
+                <li>Per-room playlists independent</li>
+                <li>Voice commands: "Create jazz for living room"</li>
+                <li>Generated songs auto-added to room playlist</li>
+                <li>Smart mirror shows current user preferences</li>
+            </ul>
+        </div>
+        
+        <div class="box">
+            <h3>2. Guest Mode</h3>
+            <ul>
+                <li>Temporary guest accounts (auto-expire after 24h)</li>
+                <li>Restricted to specific rooms (living room, guest bedroom)</li>
+                <li>Can generate songs, limited to 5 per session</li>
+                <li>Voice: "Hey Google, guest mode, create upbeat pop"</li>
+                <li>Smart mirror touch interface for manual song creation</li>
+            </ul>
+        </div>
+        
+        <div class="box">
+            <h3>3. Party Mode 🎉</h3>
+            <ul>
+                <li>Multi-room synchronized playback</li>
+                <li>All speakers play same playlist</li>
+                <li>Guest access enabled in all public rooms</li>
+                <li>Auto-generate party playlist based on theme</li>
+                <li>Voice voting for next song</li>
+                <li>Smart mirror shows queue + guest contributions</li>
+            </ul>
+        </div>
+        
+        <div class="box">
+            <h3>4. Sleep Mode</h3>
+            <ul>
+                <li>Active in bedroom only (10 PM - 7 AM)</li>
+                <li>Generates relaxing ambient tracks (20-30 min)</li>
+                <li>Auto-fades volume over 15 minutes</li>
+                <li>Voice commands disabled (except "stop")</li>
+                <li>No notifications or TTS announcements</li>
+            </ul>
+        </div>
+    </div>
+    
+    <h2>Party Mode Deep Dive</h2>
+    
+    <div class="highlight-box">
+        <h3 style="margin-top: 0; color: #e94560;">Example: Friday Night House Party</h3>
+        
+        <div class="flow-diagram">
+            <div class="flow-step">
+                <strong>6:00 PM - Party Mode Activation</strong><br>
+                Homeowner: "Hey Google, activate party mode with electronic dance theme"
+            </div>
+            <div class="flow-arrow">⬇️</div>
+            
+            <div class="flow-step">
+                <strong>Home Assistant Processing</strong><br>
+                • Switches all public rooms (living room, kitchen, guest bedroom) to party playlist<br>
+                • Enables guest access with rate limit (10 songs per guest)<br>
+                • Sends API request: <code>POST /api/ha/party-mode</code> with theme="electronic dance"
+            </div>
+            <div class="flow-arrow">⬇️</div>
+            
+            <div class="flow-step">
+                <strong>AI Server (RTX 3090 PC) - Initial Playlist</strong><br>
+                • Generates 8 seed songs (electronic, uplifting, 128-140 BPM)<br>
+                • Total generation time: ~3 minutes (parallel Celery tasks)<br>
+                • Returns audio files + metadata to Home Assistant
+            </div>
+            <div class="flow-arrow">⬇️</div>
+            
+            <div class="flow-step">
+                <strong>6:03 PM - Playlist Ready</strong><br>
+                • TTS announcement: "Party playlist generated! 8 songs ready to play"<br>
+                • Synchronized playback starts across living room, kitchen speakers<br>
+                • Smart mirror displays queue + "Create Your Own Song" button
+            </div>
+            <div class="flow-arrow">⬇️</div>
+            
+            <div class="flow-step">
+                <strong>6:30 PM - Guest Interaction (via Smart Mirror)</strong><br>
+                Guest taps smart mirror → "Create relaxing jazz song"<br>
+                System: "Guest_Sarah created song queued (position 5)"<br>
+                Song generates in background, inserted into playlist
+            </div>
+            <div class="flow-arrow">⬇️</div>
+            
+            <div class="flow-step">
+                <strong>7:15 PM - Voice Command (Kitchen)</strong><br>
+                Guest: "Hey Google, create energetic rock song for the party"<br>
+                System routes to RTX 3090 PC → 25s generation → Auto-added to queue
+            </div>
+            <div class="flow-arrow">⬇️</div>
+            
+            <div class="flow-step">
+                <strong>9:00 PM - Adaptive Playlist</strong><br>
+                • System detects 15 custom guest songs in queue<br>
+                • Auto-generates 5 "filler" songs matching average BPM (132) and mood<br>
+                • Maintains energy level, prevents awkward silence
+            </div>
+            <div class="flow-arrow">⬇️</div>
+            
+            <div class="flow-step">
+                <strong>11:30 PM - Party Mode Deactivation</strong><br>
+                Homeowner: "Hey Google, end party mode"<br>
+                • Saves party playlist to library (22 songs total)<br>
+                • Guest accounts auto-expire<br>
+                • Rooms revert to personal playlists
+            </div>
+        </div>
+    </div>
+    
+    <h2>User & Guest Management</h2>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>User Type</th>
+                <th>Authentication</th>
+                <th>Song Quota</th>
+                <th>Room Access</th>
+                <th>Expiration</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Homeowner</strong></td>
+                <td>Home Assistant user account</td>
+                <td>Unlimited</td>
+                <td>All rooms</td>
+                <td>Permanent</td>
+            </tr>
+            <tr>
+                <td><strong>Family Member</strong></td>
+                <td>Individual HA user account</td>
+                <td>Unlimited</td>
+                <td>All except master bedroom</td>
+                <td>Permanent</td>
+            </tr>
+            <tr>
+                <td><strong>Guest (Voice)</strong></td>
+                <td>Auto-generated temp account</td>
+                <td>10 songs/session</td>
+                <td>Living room, kitchen, guest bedroom</td>
+                <td>24 hours</td>
+            </tr>
+            <tr>
+                <td><strong>Guest (Smart Mirror)</strong></td>
+                <td>Touch interface - no login</td>
+                <td>5 songs/session</td>
+                <td>Current room only</td>
+                <td>Session end (4 hours idle)</td>
+            </tr>
+            <tr>
+                <td><strong>Party Mode Guest</strong></td>
+                <td>Voice name ("Guest_Sarah")</td>
+                <td>15 songs/party</td>
+                <td>All public rooms</td>
+                <td>Party mode end</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <h2>Voice Command Examples</h2>
+    
+    <div class="grid">
+        <div class="box">
+            <h3>Room-Specific Commands</h3>
+            <div class="command-box">
+                "Create a jazz song for the living room"
+            </div>
+            <div class="command-box">
+                "Play relaxing music in the bedroom"
+            </div>
+            <div class="command-box">
+                "Generate upbeat pop for the kitchen"
+            </div>
+        </div>
+        
+        <div class="box">
+            <h3>Party Mode Commands</h3>
+            <div class="command-box">
+                "Activate party mode with rock theme"
+            </div>
+            <div class="command-box">
+                "Create energetic dance song for party"
+            </div>
+            <div class="command-box">
+                "Skip to next guest song"
+            </div>
+        </div>
+        
+        <div class="box">
+            <h3>Guest Commands</h3>
+            <div class="command-box">
+                "Guest mode, create happy pop song"
+            </div>
+            <div class="command-box">
+                "My name is Sarah, create chill electronic"
+            </div>
+            <div class="command-box">
+                "How many songs can I create?"
+            </div>
+        </div>
+        
+        <div class="box">
+            <h3>Playlist Management</h3>
+            <div class="command-box">
+                "Show me the living room playlist"
+            </div>
+            <div class="command-box">
+                "Add this song to party favorites"
+            </div>
+            <div class="command-box">
+                "Clear kitchen playlist"
+            </div>
+        </div>
+    </div>
+    
+    <h2>API Workflow Example</h2>
+    
+    <div class="box">
+        <h3>Full Request Lifecycle: Voice → Music</h3>
+        <ol style="font-size: 8pt; margin-left: 0.5cm;">
+            <li><strong>Voice Input Captured (0:00)</strong>
+                <ul>
+                    <li>Google Home captures: "Create relaxing jazz for the living room"</li>
+                    <li>Home Assistant voice assistant processes intent</li>
+                </ul>
+            </li>
+            
+            <li><strong>Intent Parsing (0:01)</strong>
+                <ul>
+                    <li>Extracted parameters: genre="jazz", mood="relaxing", room="living_room"</li>
+                    <li>User identified: homeowner (unlimited quota)</li>
+                </ul>
+            </li>
+            
+            <li><strong>API Request to RTX 3090 PC (0:02)</strong>
+                <ul>
+                    <li>POST http://192.168.1.100:8000/api/ha/quick-song</li>
+                    <li>Body: {voice_command: "relaxing jazz", room_id: "living_room", user_token: "ha_xxxx"}</li>
+                    <li>Response: {task_id: "abc123", status_url: "/api/ha/song-status/abc123"}</li>
+                </ul>
+            </li>
+            
+            <li><strong>Background Generation (0:02 - 0:25)</strong>
+                <ul>
+                    <li>Celery worker picks up task on RTX 3090 PC</li>
+                    <li>LLM generates lyrics (Claude Sonnet 4: ~5s)</li>
+                    <li>ACE-Step v1.5 generates music (GPU: ~20s)</li>
+                </ul>
+            </li>
+            
+            <li><strong>Home Assistant Polling (0:03, 0:08, 0:13, 0:18, 0:23)</strong>
+                <ul>
+                    <li>GET /api/ha/song-status/abc123 every 5s</li>
+                    <li>Response: {status: "processing", progress: 65%}</li>
+                </ul>
+            </li>
+            
+            <li><strong>Generation Complete (0:25)</strong>
+                <ul>
+                    <li>GET /api/ha/song-status/abc123</li>
+                    <li>Response: {status: "complete", audio_url: "/media/songs/abc123.wav", title: "Moonlight Serenade", lyrics: "..."}</li>
+                </ul>
+            </li>
+            
+            <li><strong>Playback & Announcement (0:26)</strong>
+                <ul>
+                    <li>Home Assistant downloads audio file</li>
+                    <li>TTS: "Your jazz song 'Moonlight Serenade' is ready"</li>
+                    <li>Adds to living room playlist (position 3)</li>
+                    <li>Updates smart mirror UI with new song metadata</li>
+                </ul>
+            </li>
+        </ol>
+    </div>
+    
+    <h2>Smart Mirror Interface</h2>
+    
+    <div class="grid">
+        <div class="box">
+            <h3>Touch Interface Features</h3>
+            <ul>
+                <li>Retro cassette player design (matches web UI)</li>
+                <li>Large touch buttons for song creation</li>
+                <li>Genre/mood selector (visual tiles)</li>
+                <li>Current playlist with drag-to-reorder</li>
+                <li>Guest mode toggle (1-tap activation)</li>
+                <li>Real-time generation progress bar</li>
+            </ul>
+        </div>
+        
+        <div class="box">
+            <h3>Display Modes</h3>
+            <ul>
+                <li><strong>Standby:</strong> Clock + current playing song metadata</li>
+                <li><strong>Active:</strong> Full playlist + song creation interface</li>
+                <li><strong>Party Mode:</strong> Guest queue + contribution leaderboard</li>
+                <li><strong>Generation:</strong> Animated waveform + progress (15-30s)</li>
+            </ul>
+        </div>
+    </div>
+    
+    <h2>Performance Metrics</h2>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Operation</th>
+                <th>Mac Mini (HA)</th>
+                <th>RTX 3090 PC</th>
+                <th>Total Latency</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Voice command parsing</td>
+                <td>~1-2s</td>
+                <td>-</td>
+                <td>1-2s</td>
+            </tr>
+            <tr>
+                <td>Lyrics generation (Claude API)</td>
+                <td>-</td>
+                <td>3-6s</td>
+                <td>3-6s</td>
+            </tr>
+            <tr>
+                <td>Music generation (ACE-Step GPU)</td>
+                <td>-</td>
+                <td>15-25s</td>
+                <td>15-25s</td>
+            </tr>
+            <tr>
+                <td>Playlist update & routing</td>
+                <td>~0.5s</td>
+                <td>-</td>
+                <td>0.5s</td>
+            </tr>
+            <tr>
+                <td><strong>Total (Voice → Playing)</strong></td>
+                <td><strong>1.5s</strong></td>
+                <td><strong>18-31s</strong></td>
+                <td><strong>20-35s</strong></td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <h2>Configuration Example</h2>
+    
+    <div class="box">
+        <h3>Home Assistant configuration.yaml</h3>
+        <div class="command-box" style="white-space: pre-wrap; font-size: 8pt;">
+# Music Generator Integration
+music_generator:
+  host: 192.168.1.100
+  port: 8000
+  api_token: !secret music_gen_token
+  
+# Room Configuration  
+rooms:
+  - name: living_room
+    entity_id: media_player.sonos_arc
+    guest_access: true
+    default_genre: jazz
+    
+  - name: kitchen
+    entity_id: media_player.nest_audio
+    guest_access: true
+    default_genre: pop
+    
+  - name: master_bedroom
+    entity_id: media_player.sonos_one
+    guest_access: false
+    default_genre: ambient
+    
+# Party Mode Settings
+party_mode:
+  rooms: [living_room, kitchen, guest_bedroom]
+  guest_song_limit: 15
+  auto_generate_filler: true
+  theme_presets:
+    - electronic_dance
+    - rock_party
+    - chill_lounge
+        </div>
+    </div>
+    
+    <div class="footer">
+        <strong>Smart Home AI Music Generator - Home Assistant Integration v1.0</strong><br>
+        Hardware: Mac Mini M1 (Home Assistant) + Desktop PC RTX 3090 (AI Server)<br>
+        Multi-Room Audio: 9 speakers across 6 zones | Smart Mirror UI: Living Room 32" Touchscreen<br>
+        Created: February 2026 | YorikNoir
+    </div>
+</body>
+</html>

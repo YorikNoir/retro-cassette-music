@@ -6,7 +6,7 @@
 [![Django 5.0](https://img.shields.io/badge/django-5.0+-green.svg)](https://www.djangoproject.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-📄 **[Technical Documentation](Technical_Setup_Documentation.html)** | 🏠 **[Home Assistant Integration](#home-assistant-integration)** | 🎵 **[Live Demo](http://localhost:8000)**
+📄 **[Technical Documentation](Technical_Setup_Documentation.html)** | 🏠 **[Home Assistant Integration](#home-assistant-integration)**
 
 ---
 
@@ -87,8 +87,6 @@ TTS announcement + Stream to room speakers → Add to room playlist
 - Context-aware defaults (room learns preferred genres/moods)
 
 ---
-
-## ✨ Core Features
 
 ## ✨ Core Features
 
@@ -181,223 +179,291 @@ Downloads Ollama + Llama 3.2 3B (~2GB) for offline lyrics generation.
 ---
 
 ## 💡 LLM Provider Comparison
-- 🌐 Requires internet connection
-- 🔐 Data sent to OpenAI servers
+## 💡 LLM Provider Comparison
 
-**Setup:** Add your OpenAI API key in Settings → LLM Provider → OpenAI
+| Provider | Cost | Privacy | Quality | Latency | Best For |
+|----------|------|---------|---------|---------|----------|
+| **Local (Ollama)** | Free | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | 1-3s | Privacy, offline use, no API costs |
+| **OpenAI** | $$-$$$ | ⭐⭐ | ⭐⭐⭐⭐⭐ | 2-5s | Best quality, creative lyrics |
+| **Comet API (Claude)** | $ | ⭐⭐ | ⭐⭐⭐⭐ | 3-6s | Anthropic models, competitive pricing |
+| **Custom** | Varies | ⭐⭐⭐⭐ | Varies | Varies | LM Studio, text-gen-webui, flexibility |
 
-### 3. Comet API
+**Available Models:**
+- **Ollama**: llama3.2:3b (2GB), mistral (4GB), phi3 (2.3GB)
+- **OpenAI**: gpt-3.5-turbo, gpt-4, gpt-4-turbo
+- **Comet**: claude-sonnet-4-5 (default), claude-opus-4, claude-haiku-3-5, gpt-4o
+- **Custom**: Any OpenAI-compatible API endpoint
 
-**Pros:**
-- 🤖 Access to Claude models (Anthropic)
-- 💰 Competitive pricing
-- 🎨 Great for creative content
+---
 
-**Cons:**
-- 💳 Pay-per-use API costs
-- 🌐 Requires internet connection
-
-**Setup:** Add your Comet API key in Settings → LLM Provider → Comet API
-**Default Model:** claude-sonnet-4-5
-
-### 4. Custom API Provider
-
-Connect to any OpenAI-compatible API endpoint (e.g., local LM Studio, text-generation-webui).
-
-### Manual Setup (Advanced)
-
-If you prefer manual setup or need more control:
-
-1. **Clone and navigate:**
-   ```bash
-   git clone https://github.com/YorikNoir/retro-cassette-music.git
-   cd retro-cassette-music
-   ```
-
-2. **Create virtual environment:**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # Windows: venv\Scripts\activate
-   ```
-
-3. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Configure environment:**
-   ```bash
-   cp .env.example .env
-   # Edit .env - IMPORTANT: Set ENCRYPTION_KEY
-   # Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
-   ```
-
-5. **Initialize database:**
-   ```bash
-   python manage.py migrate
-   python manage.py createsuperuser  # Optional: admin access
-   ```
-
-6. **Download AI models:**
-   ```bash
-   python manage.py download_models
-   ```
-
-7. **Start services manually:**
-   ```bash
-   # Terminal 1: Django server
-   python manage.py runserver
-   
-   # Terminal 2: Celery worker
-   celery -A config worker --loglevel=info --pool=solo  # Windows
-   celery -A config worker --loglevel=info              # Linux/Mac
-   ```
-
-## Project Structure
+## 📁 Project Structure
 
 ```
 retro-cassette-music/
-├── manage.py
-├── requirements.txt
-├── .env.example
-├── start.bat / start.sh           # Start all services
-├── stop.bat / stop.sh             # Stop all services  
-├── setup.bat / setup.sh           # Initial setup
-├── install_local_llm.bat / .sh    # Install Ollama + Llama 3.2
-├── Technical_Setup_Documentation.html  # Technical reference guide
-├── config/                        # Django settings
-│   ├── settings.py
-│   ├── urls.py
-│   └── celery.py                  # Celery configuration
-├── apps/
-│   ├── accounts/                  # User authentication & LLM provider settings
-│   ├── songs/                     # Song CRUD & voting
-│   ├── library/                   # User music library
-│   └── generation/                # AI generation tasks (Celery)
-├── static/
-│   ├── css/                       # Retro cassette styles
-│   │   ├── main.css
-│   │   └── cassette.css
-│   ├── js/                        # Vanilla JavaScript
-│   │   ├── api.js
-│   │   ├── auth.js
-│   │   ├── songs.js
-│   │   └── player.js
-│   └── images/                    # UI assets
-├── templates/                     # HTML templates
-│   └── index.html                 # Single-page app
-└── media/                         # User-generated content
+├── apps/                           # Django applications (modular architecture)
+│   ├── accounts/                   # User auth, JWT, encrypted API keys, room permissions
+│   ├── songs/                      # Song CRUD, voting system, publishing logic
+│   ├── library/                    # Playlists, collections, filtering, room management
+│   ├── generation/                 # Celery tasks, LLM integration, ACE-Step inference
+│   └── homeassistant/              # Home Assistant API endpoints (voice commands, rooms)
+├── config/                         # Project configuration
+│   ├── settings.py                 # Django settings, middleware, LLM providers
+│   ├── urls.py                     # URL routing, API endpoints
+│   └── celery.py                   # Async task queue configuration
+├── static/                         # Frontend assets
+│   ├── css/                        # Retro theme + smart mirror styles
+│   ├── js/                         # Vanilla JavaScript (api.js, auth.js, player.js, voice.js)
+│   └── images/                     # UI assets
+├── templates/                      # HTML templates
+│   ├── index.html                  # Main SPA with cassette player UI
+│   └── smartmirror.html            # Touchscreen-optimized interface
+├── media/                          # User-generated songs (WAV/MP3)
+├── setup.bat / setup.sh            # One-command initial setup
+├── start.bat / start.sh            # Launch Django + Celery
+├── stop.bat / stop.sh              # Stop all services
+├── install_local_llm.bat/.sh       # Install Ollama + Llama 3.2
+├── requirements.txt                # Python dependencies
+├── .env.example                    # Environment variables template
+└── Technical_Setup_Documentation.html  # Detailed architecture docs
 ```
 
-## Usage
+---
 
-### Creating a Song
-
-1. Log in to your account
-2. Click "Create New Song"
-3. Choose to generate lyrics with AI or write your own
-4. Select genre, mood, and duration
-5. Click "Generate Music"
-6. Listen and save to your library!
-
-### Publishing Songs
-
-- Songs are private by default
-- Click "Publish" to share with the community
-- Other users can discover and vote on published songs
-
-## Development
-
-### Running Tests
-```bash
-python manage.py test
-```
-
-### Code Style
-```bash
-black .
-flake8 .
-```
-
-### Project Scripts
-
-| Script | Platform | Purpose |
-|--------|----------|---------|
-| `setup.bat` / `setup.sh` | Win / Unix | One-time setup: venv, deps, migrations |
-| `start.bat` / `start.sh` | Win / Unix | Start Django + Celery together |
-| `stop.bat` / `stop.sh` | Win / Unix | Stop all services |
-| `install_local_llm.bat` / `install_local_llm.sh` | Win / Unix | Install Ollama and Llama 3.2 for local lyrics generation |
+## 🔧 Configuration
 
 ### Environment Variables
 
-Key settings in `.env`:
-
-- `SECRET_KEY` - Django secret key (auto-generated if not set)
-- `ENCRYPTION_KEY` - **Required!** Fernet key for encrypted API keys storage
-  - Generate with: `python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"`
-- `DEBUG` - Enable/disable debug mode (default: False)
-- `MODELS_PATH` - Path to ACE-Step model files (default: ./checkpoints)
-- `MAX_CONCURRENT_TASKS` - Number of parallel song generations (default: 3)
-- `OLLAMA_BASE_URL` - Ollama API endpoint (default: http://localhost:11434)
-- `OLLAMA_MODEL` - Default Ollama model (default: llama3.2:3b)
-
-## License
-
-MIT License - see LICENSE file
-
-## Quick Reference
-
-### LLM Provider Comparison
-
-| Provider | Cost | Privacy | Quality | Models | Best For |
-|----------|------|---------|---------|--------|----------|
-| **Local (Ollama)** | Free | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | llama3.2, mistral, phi3 | Privacy, offline use |
-| **OpenAI** | $$ | ⭐⭐ | ⭐⭐⭐⭐⭐ | GPT-3.5, GPT-4 | Best quality |
-| **Comet API** | $ | ⭐⭐ | ⭐⭐⭐⭐ | Claude models, GPT-4o | Creative content |
-| **Custom** | Varies | ⭐⭐⭐⭐ | Varies | Any OpenAI-compatible | Flexibility |
-
-### Useful Commands
+Create `.env` file (copy from `.env.example`):
 
 ```bash
-# Check Ollama status
-ollama list                    # List installed models
-ollama ps                      # Show running models
-ollama pull llama3.2:3b        # Download specific model
-ollama rm mistral              # Remove model
+# Required
+ENCRYPTION_KEY=<generate_with_fernet>    # API key encryption
+SECRET_KEY=<django_secret_key>           # Django security
 
-# Django management
-python manage.py migrate       # Apply database migrations
-python manage.py createsuperuser  # Create admin account
-python manage.py collectstatic # Gather static files
-python manage.py shell         # Interactive Python shell
+# LLM Providers (choose one or configure multiple per user)
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_MODEL=llama3.2:3b
+# COMET_API_BASE_URL=https://api.cometapi.com/v1
 
-# Celery monitoring
-celery -A config inspect active   # Show active tasks
-celery -A config inspect stats    # Worker statistics
-celery -A config purge            # Clear all tasks
+# Home Assistant Integration (optional)
+HA_BASE_URL=http://homeassistant.local:8123
+HA_WEBHOOK_SECRET=<random_secret>
+ENABLE_VOICE_COMMANDS=True
+DEFAULT_ROOM=Living Room
 
-# Generate encryption key
+# Performance
+MAX_CONCURRENT_TASKS=3                   # Celery concurrency
+USE_GPU=True                             # CUDA acceleration
+CUDA_VISIBLE_DEVICES=0
+
+# Database (defaults to SQLite)
+DATABASE_URL=sqlite:///db.sqlite3
+# DATABASE_URL=postgresql://user:pass@localhost:5432/retro_music
+
+# Redis (for Celery)
+CELERY_BROKER_URL=redis://localhost:6379/0
+```
+
+**Generate encryption key:**
+```python
 python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
 ```
 
-### API Endpoints
+---
 
+## 🔒 Security Features
+
+- **Encrypted API Keys**: Fernet (AES-128-CBC) encryption for API keys stored in database
+- **JWT Authentication**: Short-lived access tokens (15min) + refresh tokens (7 days)
+- **CSRF Protection**: Django CSRF middleware with SameSite cookies
+- **Input Validation**: DRF serializers with custom validators, SQL injection prevention
+- **Home Assistant Tokens**: Bearer token authentication with room-level permissions
+- **Triple-Layer API Key Protection**:
+  1. Database: EncryptedCharField
+  2. Serializer: `write_only=True` (never in GET responses)
+  3. Override: `to_representation()` explicitly removes keys
+
+---
+
+## 📊 Performance Optimization
+
+### Backend
+- **Query Optimization**: `select_related()`, `prefetch_related()` for foreign keys
+- **Redis Caching**: Popular songs cached (5min TTL)
+- **Database Indexing**: user_id, created_at, is_published
+- **Model Reuse**: ACE-Step loaded once per Celery worker
+
+### Frontend
+- **Lazy Loading**: IntersectionObserver for images
+- **Pagination**: 20 songs/page to limit DOM size
+- **Debouncing**: Search input (300ms)
+- **Zero Dependencies**: Vanilla JS reduces bundle to ~50KB
+
+### AI Inference
+- **GPU Acceleration**: CUDA support for 10x faster generation
+- **Batch Processing**: Celery async tasks with configurable concurrency
+- **Model Caching**: VAE decoder cached in memory
+
+---
+
+## 🧪 Development
+
+### Running Tests
+```bash
+python manage.py test                    # Run all tests
+python manage.py test apps.accounts      # Test specific app
+coverage run manage.py test              # With coverage
 ```
-POST /api/auth/register         # Create new user
-POST /api/auth/login            # Get JWT tokens
-POST /api/auth/refresh          # Refresh access token
-GET  /api/auth/user             # Get current user profile
-PUT  /api/auth/user             # Update user settings
 
-POST /api/songs/generate        # Generate new song
-GET  /api/songs/                # List songs (paginated)
-GET  /api/songs/{id}/           # Get song details
-PUT  /api/songs/{id}/           # Update song
-DELETE /api/songs/{id}/         # Delete song
-POST /api/songs/{id}/vote       # Vote on song
-POST /api/songs/{id}/publish    # Publish song
+### Code Quality
+```bash
+black .                                  # Format code
+flake8 .                                 # Lint
+python manage.py check --deploy          # Deployment checks
 ```
 
-## Credits
+### Useful Commands
+```bash
+# Django management
+python manage.py migrate                 # Apply migrations
+python manage.py createsuperuser         # Admin account
+python manage.py shell                   # Interactive shell
+python manage.py collectstatic           # Gather static files
 
-Built on top of [ACE-Step](https://github.com/your-acestep-repo) - Advanced Audio Generation Model
+# Celery monitoring
+celery -A config inspect active          # Active tasks
+celery -A config flower                  # Web UI (localhost:5555)
+celery -A config purge                   # Clear queue
+
+# Ollama management
+ollama list                              # Installed models
+ollama pull llama3.2:3b                  # Download model
+ollama ps                                # Running models
+```
+
+---
+
+## 🚢 Deployment
+
+### Production Checklist
+
+- [ ] Set `DEBUG=False` in `.env`
+- [ ] Generate new `SECRET_KEY` and `ENCRYPTION_KEY`
+- [ ] Configure `ALLOWED_HOSTS` with domain
+- [ ] Switch to PostgreSQL (`DATABASE_URL`)
+- [ ] Set up Redis persistence (AOF enabled)
+- [ ] Configure CORS (`CORS_ALLOWED_ORIGINS`)
+- [ ] Run `python manage.py collectstatic`
+- [ ] Run `python manage.py migrate`
+- [ ] Set up Gunicorn + Nginx
+- [ ] Configure systemd services for Django + Celery
+- [ ] Enable SSL with Let's Encrypt
+- [ ] Set up monitoring (Sentry, Flower)
+
+### Server Configuration
+
+```nginx
+# Nginx reverse proxy
+upstream django {
+    server 127.0.0.1:8000;
+}
+
+server {
+    listen 80;
+    server_name your-domain.com;
+    
+    location / {
+        proxy_pass http://django;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+    
+    location /static/ {
+        alias /path/to/staticfiles/;
+    }
+    
+    location /media/ {
+        alias /path/to/media/;
+    }
+}
+```
+
+---
+
+## 📚 API Documentation
+
+### Authentication Endpoints
+```http
+POST /api/auth/register
+POST /api/auth/login
+POST /api/auth/refresh
+GET  /api/auth/profile
+PUT  /api/auth/profile
+```
+
+### Song Management
+```http
+POST   /api/generation/lyrics        # Generate lyrics only
+POST   /api/generation/music         # Generate full song
+GET    /api/songs/                   # List songs (paginated)
+GET    /api/songs/{id}/              # Song details
+PUT    /api/songs/{id}/              # Update song
+DELETE /api/songs/{id}/              # Delete song
+POST   /api/songs/{id}/vote          # Upvote/downvote
+POST   /api/songs/{id}/publish       # Make public
+```
+
+### Home Assistant Integration
+```http
+POST /api/ha/generate-song           # Generate with parameters
+POST /api/ha/quick-song              # Voice command parsing
+GET  /api/ha/song-status/{task_id}   # Poll generation status
+GET  /api/ha/playlists/{room_id}     # Room playlists
+GET  /api/ha/rooms                   # List rooms/zones
+POST /api/ha/party-mode              # Multi-room sync
+```
+
+**Full API documentation**: `/api/docs/` (Swagger/OpenAPI)
+
+---
+
+## 🤝 Contributing
+
+This project follows industry best practices:
+- **Code Style**: PEP 8, Black formatting, type hints
+- **Git Workflow**: Feature branches, meaningful commits, PR reviews
+- **Testing**: Unit tests for models/views/serializers, integration tests for workflows
+- **Documentation**: Docstrings (Google style), README, Technical docs
+
+---
+
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE) file
+
+---
+
+## 🎓 Learning Outcomes & Skills Demonstrated
+
+This project showcases expertise in:
+- **Full-Stack Development**: Django backend + Vanilla JS frontend SPA
+- **AI/ML Integration**: PyTorch model deployment, multi-provider LLM orchestration
+- **Distributed Systems**: Celery task queue, Redis caching, async processing
+- **Smart Home IoT**: Home Assistant REST API, voice command parsing, multi-zone control
+- **Security Engineering**: Encryption, JWT, CSRF protection, input validation
+- **DevOps**: Docker-ready, systemd services, Nginx reverse proxy, production deployment
+- **API Design**: RESTful endpoints, OpenAPI documentation, versioning
+- **Database Design**: Normalized schema, foreign keys, many-to-many relationships
+- **Software Architecture**: Modular Django apps, separation of concerns, scalable design
+
+---
+
+## 📞 Contact
+
+**Developer**: YorikNoir  
+**GitHub**: [github.com/YorikNoir/retro-cassette-music](https://github.com/YorikNoir/retro-cassette-music)  
+**Documentation**: [Technical Setup Documentation](Technical_Setup_Documentation.html)
+
+---
+
+*Built with ❤️ using Django, PyTorch, and ACE-Step v1.5*
