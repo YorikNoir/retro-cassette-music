@@ -6,7 +6,7 @@
 [![Django 5.0](https://img.shields.io/badge/django-5.0+-green.svg)](https://www.djangoproject.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-📄 **[Technical Documentation](Technical_Setup_Documentation.html)** | 🏠 **[Home Assistant Integration](#home-assistant-integration)**
+📄 **[Technical Documentation](https://htmlpreview.github.io/?https://github.com/YorikNoir/retro-cassette-music/blob/main/Technical_Setup_Documentation.html)** | 🏠 **[Home Assistant Integration](https://htmlpreview.github.io/?https://github.com/YorikNoir/retro-cassette-music/blob/main/HomeAssistant_Integration_Guide.html)**
 
 ---
 
@@ -462,7 +462,7 @@ This project showcases expertise in:
 
 **Developer**: YorikNoir  
 **GitHub**: [github.com/YorikNoir/retro-cassette-music](https://github.com/YorikNoir/retro-cassette-music)  
-**Documentation**: [Technical Setup Documentation](Technical_Setup_Documentation.html)
+**Documentation**: [Technical Setup Documentation](https://htmlpreview.github.io/?https://github.com/YorikNoir/retro-cassette-music/blob/main/Technical_Setup_Documentation.html)
 
 ---
 
