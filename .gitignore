@@ -18,6 +18,11 @@ db.sqlite3-journal
 /staticfiles
 celery.pid
 
+# Django migrations - auto-generated on each setup
+# Keep __init__.py files for directory structure, exclude migration files
+apps/*/migrations/*.py
+!apps/*/migrations/__init__.py
+
 # Environment
 .env
 .env.local
