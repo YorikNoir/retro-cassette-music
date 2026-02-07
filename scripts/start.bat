@@ -1,6 +1,6 @@
 @echo off
 REM Retro Cassette Music Generator - Start Script
-REM Usage: start.bat [debug]
+REM Usage: scripts\start.bat [debug]
 
 set DEBUG_MODE=False
 if "%1"=="debug" set DEBUG_MODE=True
@@ -11,7 +11,7 @@ if "%DEBUG_MODE%"=="True" echo  [DEBUG MODE ENABLED]
 echo ========================================
 echo.
 
-cd /d "%~dp0"
+cd /d "%~dp0\.."
 
 REM Check if virtual environment exists
 if not exist "venv\Scripts\activate.bat" (

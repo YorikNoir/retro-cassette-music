@@ -1,5 +1,9 @@
 #!/bin/bash
 # Initial setup script for development
+# This script should be run from the retro-cassette-music directory:
+#   ./scripts/setup.sh
+
+cd "$(dirname "$0")/.."
 
 echo "🎵 Retro Cassette Music Generator - Initial Setup"
 echo "=================================================="
@@ -63,6 +67,6 @@ echo ""
 echo "✅ Setup complete!"
 echo ""
 echo "To start all services:"
-echo "  ./start.sh"
+echo "  ./scripts/start.sh"
 echo ""
 echo "Visit: http://localhost:7777"

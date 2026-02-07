@@ -1,4 +1,7 @@
 # Quick start script for Windows development
+# Usage: .\scripts\start.ps1
+
+Set-Location (Split-Path $MyInvocation.MyCommand.Path) -PassThru | Push-Location '..'
 
 Write-Host "🎵 Retro Cassette Music Generator - Quick Start" -ForegroundColor Cyan
 Write-Host "===============================================" -ForegroundColor Cyan
@@ -13,8 +16,12 @@ if (-not (Test-Path "venv")) {
 Write-Host "Activating virtual environment..." -ForegroundColor Yellow
 & .\venv\Scripts\Activate.ps1
 
-# Install dependencies
-Write-Host "Installing dependencies..." -ForegroundColor Yellow
+# Install parent dependencies (ACE-Step)
+Write-Host "Installing ACE-Step dependencies..." -ForegroundColor Yellow
+pip install -r ..\requirements.txt
+
+# Install Django dependencies
+Write-Host "Installing Django dependencies..." -ForegroundColor Yellow
 pip install -r requirements.txt
 
 # Create .env if it doesn't exist
@@ -43,6 +50,9 @@ Write-Host ""
 Write-Host "✅ Setup complete!" -ForegroundColor Green
 Write-Host ""
 Write-Host "To start the development server:" -ForegroundColor Cyan
+Write-Host "  .\scripts\start.bat" -ForegroundColor White
+Write-Host ""
+Write-Host "Or manually run:" -ForegroundColor Cyan
 Write-Host "  python manage.py runserver 7777" -ForegroundColor White
 Write-Host ""
 Write-Host "Server will be available at: http://localhost:7777" -ForegroundColor Yellow

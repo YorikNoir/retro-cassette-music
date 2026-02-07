@@ -3,7 +3,7 @@
 ## Base URL
 
 ```
-http://localhost:8000/api
+http://localhost:7777/api
 ```
 
 ## Authentication

@@ -6,7 +6,7 @@
 [![Django 5.0](https://img.shields.io/badge/django-5.0+-green.svg)](https://www.djangoproject.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-📄 **[Technical Documentation](https://htmlpreview.github.io/?https://github.com/YorikNoir/retro-cassette-music/blob/main/Technical_Setup_Documentation.html)** | 🏠 **[Home Assistant Integration](https://htmlpreview.github.io/?https://github.com/YorikNoir/retro-cassette-music/blob/main/HomeAssistant_Integration_Guide.html)**
+📄 **[Technical Documentation](https://htmlpreview.github.io/?https://github.com/YorikNoir/retro-cassette-music/blob/main/docs/Technical_Setup_Documentation.html)** | 🏠 **[Home Assistant Integration](https://htmlpreview.github.io/?https://github.com/YorikNoir/retro-cassette-music/blob/main/docs/HomeAssistant_Integration_Guide.html)**
 
 ---
 
@@ -126,7 +126,7 @@ TTS announcement + Stream to room speakers → Add to room playlist
 - 🎉 **Party Mode**: Synchronized multi-room playback across smart home
 
 ### **Developer-Friendly**
-- 🔧 **One-Command Setup**: `setup.bat` / `setup.sh` handles venv, dependencies, migrations
+- 🔧 **One-Command Setup**: `scripts/setup.bat` / `scripts/setup.sh` handles venv, dependencies, migrations
 - 📚 **Comprehensive Docs**: Technical architecture, API reference, deployment guide
 - 🔐 **Security Best Practices**: CSRF, CORS, JWT, encrypted fields, input validation
 - 🧪 **Testable**: Django test suite, API testing with Postman collections
@@ -150,10 +150,10 @@ git clone https://github.com/YorikNoir/stepACE-Step-1.5.git
 cd stepACE-Step-1.5\retro-cassette-music
 
 # Setup (installs ACE-Step + Django dependencies, runs migrations)
-setup.bat
+scripts/setup.bat
 
 # Start Django development server
-start.bat
+scripts/start.bat
 
 # Visit http://localhost:7777
 ```
@@ -165,11 +165,11 @@ git clone https://github.com/YorikNoir/stepACE-Step-1.5.git
 cd stepACE-Step-1.5/retro-cassette-music
 
 # Setup
-chmod +x setup.sh start.sh stop.sh
-./setup.sh
+chmod +x scripts/setup.sh scripts/start.sh scripts/stop.sh
+./scripts/setup.sh
 
 # Start development server
-./start.sh
+./scripts/start.sh
 
 # Visit http://localhost:7777
 ```
@@ -178,11 +178,11 @@ chmod +x setup.sh start.sh stop.sh
 
 ```bash
 # Windows
-install_local_llm.bat
+scripts/install_local_llm.bat
 
 # Linux/Mac  
-chmod +x install_local_llm.sh
-./install_local_llm.sh
+chmod +x scripts/install_local_llm.sh
+./scripts/install_local_llm.sh
 ```
 
 Downloads Ollama + Llama 3.2 3B (~2GB) for offline lyrics generation.
@@ -224,28 +224,39 @@ stepACE-Step-1.5/                   # PARENT: AI music generation engine
     ├── apps/                       # Django applications (modular architecture)
     │   ├── accounts/               # User auth, JWT, encrypted API keys
     │   ├── songs/                  # Song CRUD, voting, publishing
+    │   ├── generation/             # LLM integration, ACE-Step wrapper, background tasks
     │   ├── library/                # Playlists, collections, room management
-    ├── generation/                 # Background tasks, LLM integration, ACE-Step wrapper
     │   └── homeassistant/          # Home Assistant API endpoints
     ├── config/                     # Django project configuration
-    │   ├── settings.py             # Django settings, middleware, LLM providers
-    │   ├── urls.py                 # URL routing, API endpoints
-    │   └── celery.py               # Async task queue configuration
+    │   ├── settings.py             # Django settings, middleware, LLM config
+    │   └── urls.py                 # URL routing, API endpoints
+    ├── docs/                       # 📁 Documentation (guides, API docs, deployment)
+    │   ├── Technical_Setup_Documentation.html
+    │   ├── HomeAssistant_Integration_Guide.html
+    │   ├── API.md
+    │   ├── DEPLOYMENT.md
+    │   ├── CONTRIBUTING.md
+    │   └── GITHUB_AUTH.md
+    ├── scripts/                    # 📁 Startup & installation scripts
+    │   ├── setup.bat / setup.sh    # One-command setup
+    │   ├── start.bat / start.sh    # Launch Django server
+    │   ├── stop.bat / stop.sh      # Stop server
+    │   └── install_local_llm.bat / install_local_llm.sh
     ├── static/                     # Frontend assets (CSS, JS, images)
-    ├── templates/                  # HTML templates (cassette UI, smart mirror)
-    ├── media/                      # User-generated songs (WAV/MP3)
+    ├── templates/                  # HTML templates (SPA interface)
+    ├── media/                      # User-generated songs (MP3 files)
+    ├── images/                     # Screenshots and UI mockups
     ├── venv/                       # Virtual environment (auto-created)
-    ├── setup.bat / setup.sh        # One-command setup (installs BOTH requirements.txt)
-    ├── start.bat / start.sh        # Launch Django development server
     ├── requirements.txt            # Django app dependencies
+    ├── manage.py                   # Django management utility
     ├── .env.example                # Environment variables template
-    └── Technical_Setup_Documentation.html
+    └── README.md                   # Project overview (this file)
 ```
 
 **Dependency Structure:**
 - **Parent `requirements.txt`**: ACE-Step AI engine (PyTorch 2.7.1, transformers, loguru, einops, vector-quantize-pytorch)
 - **App `requirements.txt`**: Django web framework (DRF, JWT, CORS, encryption)
-- **setup.bat/setup.sh**: Installs BOTH automatically in correct order
+- **scripts/setup.bat / scripts/setup.sh**: Installs BOTH automatically in correct order
 
 ---
 
@@ -436,7 +447,7 @@ GET  /api/ha/rooms                   # List rooms/zones
 POST /api/ha/party-mode              # Multi-room sync
 ```
 
-**Full API documentation**: `/api/docs/` (Swagger/OpenAPI)
+**Full API documentation**: `docs/API.md` or `/api/docs/` (Swagger/OpenAPI)
 
 ---
 

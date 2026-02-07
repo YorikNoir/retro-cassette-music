@@ -1,5 +1,8 @@
 #!/bin/bash
-# Usage: ./start.sh [debug]
+# Retro Cassette Music Generator - Start Script
+# Usage: ./scripts/start.sh [debug]
+
+cd "$(dirname "$0")/.."
 
 DEBUG_MODE=false
 if [ "$1" = "debug" ]; then

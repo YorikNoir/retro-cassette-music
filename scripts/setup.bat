@@ -1,5 +1,9 @@
 @echo off
 REM Initial setup script for Windows
+REM This script should be run from the retro-cassette-music directory:
+REM   scripts\setup.bat
+
+cd /d "%~dp0\.."
 
 echo ================================================
 echo  Retro Cassette Music Generator - Initial Setup
@@ -66,7 +70,7 @@ echo  Setup complete!
 echo ========================================
 echo.
 echo To start all services:
-echo   start.bat
+echo   scripts\start.bat
 echo.
 echo Visit: http://localhost:7777
 echo.
