@@ -1,5 +1,18 @@
 // API Client for Retro Cassette Music Generator
 
+// Utility Functions
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
 class API {
     constructor() {
         this.baseURL = '/api';
