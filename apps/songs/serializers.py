@@ -44,6 +44,7 @@ class SongCreateSerializer(serializers.ModelSerializer):
     lyrics = serializers.CharField(required=False, allow_blank=True)
     description = serializers.CharField(required=False, allow_blank=True)
     mood = serializers.CharField(required=False, allow_blank=True)
+    duration = serializers.IntegerField(required=False, allow_null=True)
     
     class Meta:
         model = Song

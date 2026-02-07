@@ -68,6 +68,6 @@ echo.
 echo To start all services:
 echo   start.bat
 echo.
-echo Visit: http://localhost:8000
+echo Visit: http://localhost:7777
 echo.
 pause

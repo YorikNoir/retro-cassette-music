@@ -118,35 +118,71 @@ class LyricsGenerator:
         """Generate lyrics using OpenAI API."""
         try:
             from openai import OpenAI
+            import json
             
             client = OpenAI(api_key=self.api_key)
             
             if settings.DEBUG:
                 print(f"[OPENAI] Generating lyrics with {self.model}")
             
+            system_message = """You are a creative songwriter. Generate song lyrics and a style description.
+
+IMPORTANT RULES:
+1. DO NOT include the song title in the lyrics
+2. Return ONLY a JSON object with this exact structure:
+{
+  "lyrics": "...your lyrics here...",
+  "style": "...short style prompt here..."
+}
+
+The style should be a comma-separated list of descriptors like:
+"party, hip-hop, pop-rap, fun, playful, energetic, cartoon vibe, group vocals, chant-along, funky bass, punchy drums, synth stabs, 110 BPM, upbeat"""
+            
             response = client.chat.completions.create(
                 model=self.model,
                 messages=[
-                    {"role": "system", "content": "You are a creative songwriter. Generate song lyrics based on the user's request."},
+                    {"role": "system", "content": system_message},
                     {"role": "user", "content": prompt}
                 ],
                 max_tokens=max_length,
-                temperature=temperature
+                temperature=temperature,
+                response_format={"type": "json_object"}
             )
             
-            lyrics = response.choices[0].message.content
+            content = response.choices[0].message.content
             
             # Validate response is not HTML (error page)
-            if lyrics and (lyrics.strip().startswith('<!DOCTYPE') or lyrics.strip().startswith('<html')):
+            if content and (content.strip().startswith('<!DOCTYPE') or content.strip().startswith('<html')):
                 error_msg = "API returned HTML instead of lyrics. Check API key and endpoint."
                 if settings.DEBUG:
                     print(f"[OPENAI] ERROR: {error_msg}")
                 raise ValueError(error_msg)
             
-            if settings.DEBUG:
-                print(f"[OPENAI] Generated {len(lyrics)} chars")
+            # Clean up markdown code fences if present
+            content_clean = content.strip()
+            if content_clean.startswith('```json'):
+                content_clean = content_clean[7:]  # Remove ```json
+            elif content_clean.startswith('```'):
+                content_clean = content_clean[3:]  # Remove ```
+            if content_clean.endswith('```'):
+                content_clean = content_clean[:-3]  # Remove closing ```
+            content_clean = content_clean.strip()
             
-            return lyrics.strip()
+            # Parse JSON response
+            try:
+                result = json.loads(content_clean)
+                lyrics = result.get('lyrics', '').strip()
+                style = result.get('style', '').strip()
+                
+                if settings.DEBUG:
+                    print(f"[OPENAI] Generated {len(lyrics)} chars lyrics, {len(style)} chars style")
+                
+                return {'lyrics': lyrics, 'style': style}
+            except json.JSONDecodeError:
+                # Fallback: treat as plain lyrics
+                if settings.DEBUG:
+                    print(f"[OPENAI] Failed to parse JSON, treating as plain text")
+                return {'lyrics': content_clean, 'style': ''}
         except Exception as e:
             if settings.DEBUG:
                 print(f"[OPENAI] Error: {e}")
@@ -156,6 +192,7 @@ class LyricsGenerator:
         """Generate lyrics using Comet API."""
         try:
             from openai import OpenAI
+            import json
             
             # Comet API uses OpenAI-compatible interface
             # OpenAI client appends /chat/completions, so base_url should be https://api.cometapi.com/v1
@@ -169,10 +206,23 @@ class LyricsGenerator:
                 print(f"[COMET] Generating lyrics using {base_url}")
                 print(f"[COMET] Model: {self.model}")
             
+            system_message = """You are a creative songwriter. Generate song lyrics and a style description.
+
+IMPORTANT RULES:
+1. DO NOT include the song title in the lyrics
+2. Return ONLY a JSON object with this exact structure:
+{
+  "lyrics": "...your lyrics here...",
+  "style": "...short style prompt here..."
+}
+
+The style should be a comma-separated list of descriptors like:
+"party, hip-hop, pop-rap, fun, playful, energetic, cartoon vibe, group vocals, chant-along, funky bass, punchy drums, synth stabs, 110 BPM, upbeat"""
+            
             response = client.chat.completions.create(
                 model=self.model,
                 messages=[
-                    {"role": "system", "content": "You are a creative songwriter. Generate song lyrics based on the user's request."},
+                    {"role": "system", "content": system_message},
                     {"role": "user", "content": prompt}
                 ],
                 max_tokens=max_length,
@@ -181,25 +231,46 @@ class LyricsGenerator:
             
             # Extract lyrics from response
             if hasattr(response, 'choices') and len(response.choices) > 0:
-                lyrics = response.choices[0].message.content
+                content = response.choices[0].message.content
             elif isinstance(response, str):
-                lyrics = response
+                content = response
             else:
                 # Try to get content from response
-                lyrics = str(response)
+                content = str(response)
             
             # Validate response is not HTML (error page)
-            if lyrics.strip().startswith('<!DOCTYPE') or lyrics.strip().startswith('<html'):
+            if content.strip().startswith('<!DOCTYPE') or content.strip().startswith('<html'):
                 error_msg = "API returned HTML instead of lyrics. Check API key and endpoint."
                 if settings.DEBUG:
                     print(f"[COMET] ERROR: {error_msg}")
-                    print(f"[COMET] Response preview: {lyrics[:200]}...")
+                    print(f"[COMET] Response preview: {content[:200]}...")
                 raise ValueError(error_msg)
             
-            if settings.DEBUG:
-                print(f"[COMET] Generated {len(lyrics)} chars")
+            # Clean up markdown code fences if present
+            content_clean = content.strip()
+            if content_clean.startswith('```json'):
+                content_clean = content_clean[7:]  # Remove ```json
+            elif content_clean.startswith('```'):
+                content_clean = content_clean[3:]  # Remove ```
+            if content_clean.endswith('```'):
+                content_clean = content_clean[:-3]  # Remove closing ```
+            content_clean = content_clean.strip()
             
-            return lyrics.strip()
+            # Parse JSON response
+            try:
+                result = json.loads(content_clean)
+                lyrics = result.get('lyrics', '').strip()
+                style = result.get('style', '').strip()
+                
+                if settings.DEBUG:
+                    print(f"[COMET] Generated {len(lyrics)} chars lyrics, {len(style)} chars style")
+                
+                return {'lyrics': lyrics, 'style': style}
+            except json.JSONDecodeError:
+                # Fallback: treat as plain lyrics
+                if settings.DEBUG:
+                    print(f"[COMET] Failed to parse JSON, treating as plain text")
+                return {'lyrics': content_clean, 'style': ''}
         except Exception as e:
             if settings.DEBUG:
                 print(f"[COMET] Error: {e}")
@@ -211,6 +282,7 @@ class LyricsGenerator:
         """Generate lyrics using custom API provider."""
         try:
             from openai import OpenAI
+            import json
             
             # Custom provider must have a base URL
             base_url = self.base_url or 'http://localhost:8000'
@@ -224,29 +296,63 @@ class LyricsGenerator:
                 print(f"[CUSTOM] Generating lyrics using {base_url}")
                 print(f"[CUSTOM] Model: {self.model}")
             
+            system_message = """You are a creative songwriter. Generate song lyrics and a style description.
+
+IMPORTANT RULES:
+1. DO NOT include the song title in the lyrics
+2. Return ONLY a JSON object with this exact structure:
+{
+  "lyrics": "...your lyrics here...",
+  "style": "...short style prompt here..."
+}
+
+The style should be a comma-separated list of descriptors like:
+"party, hip-hop, pop-rap, fun, playful, energetic, cartoon vibe, group vocals, chant-along, funky bass, punchy drums, synth stabs, 110 BPM, upbeat"""
+            
             response = client.chat.completions.create(
                 model=self.model,
                 messages=[
-                    {"role": "system", "content": "You are a creative songwriter. Generate song lyrics based on the user's request."},
+                    {"role": "system", "content": system_message},
                     {"role": "user", "content": prompt}
                 ],
                 max_tokens=max_length,
                 temperature=temperature
             )
             
-            lyrics = response.choices[0].message.content
+            content = response.choices[0].message.content
             
             # Validate response is not HTML (error page)
-            if lyrics and (lyrics.strip().startswith('<!DOCTYPE') or lyrics.strip().startswith('<html')):
+            if content and (content.strip().startswith('<!DOCTYPE') or content.strip().startswith('<html')):
                 error_msg = "API returned HTML instead of lyrics. Check API endpoint and configuration."
                 if settings.DEBUG:
                     print(f"[CUSTOM] ERROR: {error_msg}")
                 raise ValueError(error_msg)
             
-            if settings.DEBUG:
-                print(f"[CUSTOM] Generated {len(lyrics)} chars")
+            # Clean up markdown code fences if present
+            content_clean = content.strip()
+            if content_clean.startswith('```json'):
+                content_clean = content_clean[7:]  # Remove ```json
+            elif content_clean.startswith('```'):
+                content_clean = content_clean[3:]  # Remove ```
+            if content_clean.endswith('```'):
+                content_clean = content_clean[:-3]  # Remove closing ```
+            content_clean = content_clean.strip()
             
-            return lyrics.strip()
+            # Parse JSON response
+            try:
+                result = json.loads(content_clean)
+                lyrics = result.get('lyrics', '').strip()
+                style = result.get('style', '').strip()
+                
+                if settings.DEBUG:
+                    print(f"[CUSTOM] Generated {len(lyrics)} chars lyrics, {len(style)} chars style")
+                
+                return {'lyrics': lyrics, 'style': style}
+            except json.JSONDecodeError:
+                # Fallback: treat as plain lyrics
+                if settings.DEBUG:
+                    print(f"[CUSTOM] Failed to parse JSON, treating as plain text")
+                return {'lyrics': content_clean, 'style': ''}
         except Exception as e:
             if settings.DEBUG:
                 print(f"[CUSTOM] Error: {e}")
@@ -255,8 +361,15 @@ class LyricsGenerator:
     def _generate_local(self, prompt, max_length, temperature):
         """Generate lyrics using local LLM."""
         try:
-            system_prompt = "You are a creative songwriter. Generate song lyrics based on the user's request."
-            full_prompt = f"{system_prompt}\n\nUser: {prompt}\n\nLyrics:"
+            system_prompt = """You are a creative songwriter. Generate song lyrics and a style description.
+
+IMPORTANT RULES:
+1. DO NOT include the song title in the lyrics
+2. Return a JSON object with this structure:
+{"lyrics": "...", "style": "..."}
+
+The style should be descriptors like: "party, hip-hop, fun, energetic, group vocals, funky bass, 110 BPM"""
+            full_prompt = f"{system_prompt}\n\nUser: {prompt}\n\nJSON Response:"
             
             if settings.DEBUG:
                 print(f"[LLM] Full prompt length: {len(full_prompt)} chars")
@@ -310,13 +423,34 @@ class LyricsGenerator:
                 print(f"[LLM] Raw output preview: {raw_output[:200]}")
             
             # Remove the prompt from output
-            lyrics = raw_output.replace(full_prompt, "").strip()
+            response_text = raw_output.replace(full_prompt, "").strip()
             
-            if settings.DEBUG:
-                print(f"[LLM] Final lyrics length: {len(lyrics)} chars")
-                print(f"[LLM] Final lyrics: {lyrics[:200] if lyrics else '(EMPTY)'}")
+            # Clean up markdown code fences if present
+            if response_text.startswith('```json'):
+                response_text = response_text[7:]  # Remove ```json
+            elif response_text.startswith('```'):
+                response_text = response_text[3:]  # Remove ```
+            if response_text.endswith('```'):
+                response_text = response_text[:-3]  # Remove closing ```
+            response_text = response_text.strip()
             
-            return lyrics
+            # Try to parse JSON
+            import json
+            try:
+                result = json.loads(response_text)
+                lyrics = result.get('lyrics', '').strip()
+                style = result.get('style', '').strip()
+                
+                if settings.DEBUG:
+                    print(f"[LLM] Generated {len(lyrics)} chars lyrics, {len(style)} chars style")
+                
+                return {'lyrics': lyrics, 'style': style}
+            except json.JSONDecodeError:
+                # Fallback: treat as plain lyrics
+                if settings.DEBUG:
+                    print(f"[LLM] Failed to parse JSON, treating as plain text")
+                    print(f"[LLM] First 100 chars: '{response_text[:100]}'")
+                return {'lyrics': response_text, 'style': ''}
         except Exception as e:
             if settings.DEBUG:
                 print(f"Local LLM generation error: {e}")
@@ -327,62 +461,89 @@ class MusicGenerator:
     """Generate music using ACE-Step model."""
     
     def __init__(self):
+        self.dit_handler = None
+        self.llm_handler = None
         self._load_model()
     
     def _load_model(self):
         """Load ACE-Step model."""
         try:
-            from acestep.inference import AceStepInference
-            
-            model_path = os.path.join(settings.MODELS_PATH, settings.ACESTEP_MODEL)
-            vae_path = settings.VAE_PATH
+            from acestep.handler import AceStepHandler
+            from acestep.llm_inference import LLMHandler
+            from acestep.inference import GenerationConfig
             
             if settings.DEBUG:
-                print(f"Loading ACE-Step from {model_path}")
-            self.inference = AceStepInference(
-                model_path=model_path,
-                vae_path=vae_path,
-                device="cuda" if settings.USE_GPU else "cpu"
-            )
+                print(f"[ACESTEP] Initializing ACE-Step handlers...")
+            
+            # Get project root and checkpoint directory
+            project_root = str(settings.BASE_DIR.parent)
+            checkpoint_dir = os.path.join(project_root, "checkpoints")
+            
+            # Initialize DiT handler
+            self.dit_handler = AceStepHandler()
             if settings.DEBUG:
-                print("ACE-Step loaded successfully")
-        except Exception as e:
-            if settings.DEBUG:
-                print(f"Failed to load ACE-Step model: {e}")
-            # Fallback to manual loading
-            self._load_model_manual()
-    
-    def _load_model_manual(self):
-        """Manual model loading as fallback."""
-        try:
-            import importlib.util
+                print(f"[ACESTEP] Loading DiT model...")
+                print(f"[ACESTEP] USE_GPU setting: {settings.USE_GPU}")
+                print(f"[ACESTEP] Target device: {'cuda' if settings.USE_GPU else 'cpu'}")
             
-            # Load configuration
-            config_path = os.path.join(settings.MODELS_PATH, settings.ACESTEP_MODEL, 'configuration_acestep_v15.py')
-            spec = importlib.util.spec_from_file_location("config", config_path)
-            config_module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(config_module)
-            
-            # Load model
-            model_file = os.path.join(settings.MODELS_PATH, settings.ACESTEP_MODEL, 'modeling_acestep_v15_turbo.py')
-            spec = importlib.util.spec_from_file_location("model", model_file)
-            model_module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(model_module)
-            
-            # Initialize
-            self.model = model_module.AceStepV15Turbo.from_pretrained(
-                os.path.join(settings.MODELS_PATH, settings.ACESTEP_MODEL)
+            status_msg, ok = self.dit_handler.initialize_service(
+                project_root=project_root,
+                config_path="acestep-v15-turbo",
+                device="cuda" if settings.USE_GPU else "cpu",
+                use_flash_attention=True,
+                compile_model=False,
+                offload_to_cpu=False,
+                offload_dit_to_cpu=False,
             )
             
-            if settings.USE_GPU:
-                self.model = self.model.cuda()
+            if not ok:
+                raise Exception(f"DiT model failed to initialize: {status_msg}")
+            
+            # Verify GPU is being used
+            if settings.DEBUG:
+                print(f"[ACESTEP] DiT model loaded successfully")
+                if hasattr(self.dit_handler, 'device'):
+                    print(f"[ACESTEP] DiT handler device: {self.dit_handler.device}")
+                if hasattr(self.dit_handler, 'model') and hasattr(self.dit_handler.model, 'device'):
+                    print(f"[ACESTEP] DiT model device: {self.dit_handler.model.device}")
+                import torch
+                if torch.cuda.is_available():
+                    print(f"[ACESTEP] CUDA available: Yes")
+                    print(f"[ACESTEP] CUDA device: {torch.cuda.get_device_name(0)}")
+                    print(f"[ACESTEP] CUDA memory allocated: {torch.cuda.memory_allocated(0) / 1024**3:.2f} GB")
+                else:
+                    print(f"[ACESTEP] CUDA available: No - Running on CPU!")
+            
+            # Initialize LLM handler
+            self.llm_handler = LLMHandler()
+            if settings.DEBUG:
+                print(f"[ACESTEP] Loading LLM model...")
+            
+            llm_status, llm_ok = self.llm_handler.initialize(
+                checkpoint_dir=checkpoint_dir,
+                lm_model_path="acestep-5Hz-lm-0.6B",
+                backend="vllm",
+                device="cuda" if settings.USE_GPU else "cpu",
+                offload_to_cpu=False,
+                dtype=self.dit_handler.dtype,
+            )
+            
+            if not llm_ok:
+                # LLM is optional, just warn if it fails
+                if settings.DEBUG:
+                    print(f"[ACESTEP] Warning: LLM model failed to load: {llm_status}")
+            else:
+                if settings.DEBUG:
+                    print(f"[ACESTEP] LLM model loaded successfully")
             
             if settings.DEBUG:
-                print("ACE-Step loaded manually")
+                print(f"[ACESTEP] All handlers initialized successfully")
         except Exception as e:
+            import traceback
             if settings.DEBUG:
-                print(f"Manual model loading failed: {e}")
-            raise
+                print(f"[ACESTEP] Failed to load ACE-Step model: {e}")
+                traceback.print_exc()
+            raise Exception(f"ACE-Step model failed to load: {e}")
     
     def generate(self, lyrics, genre, mood, duration, temperature=1.0, description=''):
         """
@@ -400,33 +561,135 @@ class MusicGenerator:
             Path to generated audio file
         """
         try:
-            # Prepare prompt
-            mood_part = f"\nMood: {mood}" if mood else ""
-            desc_part = f"\nStyle: {description}" if description else ""
-            prompt = f"Genre: {genre}{mood_part}{desc_part}\nLyrics: {lyrics}"
+            from acestep.inference import generate_music, GenerationParams, GenerationConfig
+            import tempfile
             
-            # Generate audio
-            if hasattr(self, 'inference'):
-                audio = self.inference.generate(
-                    prompt=prompt,
-                    duration=duration,
-                    temperature=temperature
-                )
-            else:
-                # Manual generation
-                audio = self._generate_manual(prompt, duration, temperature)
+            # Build caption from genre, mood, and description
+            caption_parts = []
+            if genre:
+                caption_parts.append(f"{genre} music")
+            if mood:
+                caption_parts.append(f"with a {mood} mood")
+            if description:
+                caption_parts.append(description)
             
-            return audio
-        except Exception as e:
+            caption = ", ".join(caption_parts) if caption_parts else "instrumental music"
+            
+            # Clean up lyrics
+            lyrics_clean = lyrics.strip() if lyrics else "[Instrumental]"
+            
+            # Handle automatic duration: use -1.0 to let model decide based on content
+            duration_param = duration if duration and duration > 0 else -1.0
+            
             if settings.DEBUG:
-                print(f"Music generation error: {e}")
+                print(f"[ACESTEP] Generating music:")
+                print(f"  Caption: {caption}")
+                print(f"  Lyrics: {lyrics_clean[:100]}...")
+                if duration_param == -1.0:
+                    print(f"  Duration: automatic (model will decide based on lyrics)")
+                else:
+                    print(f"  Duration: {duration_param}s (user specified)")
+            
+            # Create generation parameters
+            params = GenerationParams(
+                task_type="text2music",
+                caption=caption,
+                lyrics=lyrics_clean,
+                duration=duration_param,
+                inference_steps=8,  # Turbo model uses 8 steps
+                seed=-1,  # Random seed
+            )
+            
+            # Create generation config
+            config = GenerationConfig(
+                batch_size=1,
+                use_random_seed=True,
+            )
+            
+            # Generate music
+            result = generate_music(
+                dit_handler=self.dit_handler,
+                llm_handler=self.llm_handler,
+                params=params,
+                config=config,
+                save_dir=None,
+                progress=None
+            )
+            
+            if not result.success:
+                raise Exception(f"Generation failed: {result.error or result.status_message}")
+            
+            if not result.audios or len(result.audios) == 0:
+                raise Exception("No audio generated")
+            
+            # Get audio data from first result
+            audio_dict = result.audios[0]
+            audio_tensor = audio_dict.get("tensor")
+            sample_rate = audio_dict.get("sample_rate", 48000)
+            
+            if audio_tensor is None:
+                raise Exception("No audio tensor in result")
+            
+            # Save audio to temp file as MP3
+            output_file = tempfile.NamedTemporaryFile(suffix='.mp3', delete=False)
+            output_file.close()  # Close to allow other processes to write
+            
+            # Write audio file
+            import soundfile as sf
+            import numpy as np
+            
+            # Convert tensor to numpy if needed
+            if hasattr(audio_tensor, 'numpy'):
+                audio_np = audio_tensor.cpu().numpy()
+            else:
+                audio_np = np.array(audio_tensor)
+            
+            # Ensure shape is (samples, channels) for soundfile
+            if audio_np.ndim == 2 and audio_np.shape[0] < audio_np.shape[1]:
+                # Transpose from (channels, samples) to (samples, channels)
+                audio_np = audio_np.T
+            elif audio_np.ndim == 1:
+                # Mono audio, reshape to (samples, 1)
+                audio_np = audio_np.reshape(-1, 1)
+            
+            # First save as WAV (temporary)
+            temp_wav = tempfile.NamedTemporaryFile(suffix='.wav', delete=False)
+            temp_wav.close()
+            sf.write(temp_wav.name, audio_np, samplerate=sample_rate)
+            
+            # Calculate actual audio duration
+            actual_duration = audio_np.shape[0] / sample_rate
+            
+            # Convert WAV to MP3
+            try:
+                from pydub import AudioSegment
+                audio = AudioSegment.from_wav(temp_wav.name)
+                audio.export(output_file.name, format='mp3', bitrate='192k')
+                
+                # Clean up temporary WAV file
+                import os
+                os.unlink(temp_wav.name)
+            except ImportError:
+                # Fallback: if pydub not available, return WAV and rename to mp3
+                if settings.DEBUG:
+                    print(f"[ACESTEP] Warning: pydub not available, saving as WAV with .mp3 extension")
+                import shutil
+                shutil.move(temp_wav.name, output_file.name)
+            
+            if settings.DEBUG:
+                print(f"[ACESTEP] Music generated successfully: {output_file.name}")
+                print(f"[ACESTEP] Actual duration: {actual_duration:.2f}s")
+                print(f"[ACESTEP] Status: {result.status_message}")
+            
+            # Return both file path and actual duration
+            return {'file': output_file.name, 'duration': int(actual_duration)}
+            
+        except Exception as e:
+            import traceback
+            if settings.DEBUG:
+                print(f"[ACESTEP] Music generation error: {e}")
+                traceback.print_exc()
             raise
-    
-    def _generate_manual(self, prompt, duration, temperature):
-        """Manual generation logic."""
-        # This would be implemented based on the specific ACE-Step interface
-        # For now, raise not implemented
-        raise NotImplementedError("Manual generation not yet implemented")
 
 
 # Singleton instances

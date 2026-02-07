@@ -168,8 +168,9 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label>Duration (seconds)</label>
-                                <input type="number" name="duration" min="10" max="180" value="30" class="retro-input" required>
+                                <label>Duration (max length)</label>
+                                <input type="text" name="duration" value="automatic" class="retro-input" placeholder="0:00 or 'automatic'" pattern="^(automatic|[0-2]?[0-9]:[0-5][0-9]|3:00)$" title="Enter MM:SS format (e.g., 0:30, 1:00, 3:00) or 'automatic' for natural length">
+                                <small style="color: var(--text-secondary); font-size: 0.875rem;">Format: M:SS (e.g., 0:30, 1:30, 3:00) or 'automatic' (lets song be as long as needed)</small>
                             </div>
                         </div>
 

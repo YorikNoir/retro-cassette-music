@@ -62,7 +62,7 @@ class UserPreferences(models.Model):
     
     # Default generation settings
     default_genre = models.CharField(max_length=50, blank=True)
-    default_duration = models.IntegerField(default=30)  # seconds
+    default_duration = models.IntegerField(null=True, blank=True)  # seconds, null=automatic
     default_temperature = models.FloatField(default=1.0)
     
     # UI preferences

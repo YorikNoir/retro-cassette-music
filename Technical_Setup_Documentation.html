@@ -162,9 +162,7 @@
 </head>
 <body>
     <h1>Retro Cassette Music - Technical Setup Documentation</h1>
-    
-    <h2>System Architecture Overview</h2>
-    
+
     <div class="box" style="background: #f8f9fa; border-color: #667eea; border-width: 3px;">
         <h3 style="color: #667eea;">Project Vision: Smart Home Music Generation</h3>
         <p style="margin-bottom: 0.2cm;"><strong>Primary Use Case:</strong> Personalized music generation for smart home environments powered by Home Assistant</p>
@@ -178,15 +176,18 @@
         </ul>
     </div>
     
+    <h2>System Architecture</h2>
+    
     <div class="box">
-        <p><strong>Architecture Pattern:</strong> Monolithic Django application with async task processing</p>
+        <p><strong>Architecture Pattern:</strong> Monolithic Django application with built-in async task processing</p>
         <ul>
             <li><strong>Web Framework:</strong> Django 5.0.1 with Django REST Framework 3.14.0</li>
-            <li><strong>Task Queue:</strong> Built-in async task manager with background processing</li>
+            <li><strong>Background Tasks:</strong> Built-in async task manager (no external queue required)</li>
             <li><strong>AI/ML Stack:</strong> PyTorch 2.7.1 (CUDA 12.8), Transformers 4.57, ACE-Step v1.5</li>
-            <li><strong>Authentication:</strong> JWT (djangorestframework-simplejwt) + Django sessions + Home Assistant token support</li>
+            <li><strong>Authentication:</strong> JWT (djangorestframework-simplejwt) + Home Assistant token support</li>
             <li><strong>Database:</strong> SQLite (dev), PostgreSQL-ready (prod)</li>
-            <li><strong>Encryption:</strong> Fernet (symmetric encryption) for API keys at rest</li>
+            <li><strong>Encryption:</strong> Fernet (AES-128-CBC) for API keys at rest</li>
+            <li><strong>Deployment:</strong> Gunicorn + Nginx, systemd services</li>
         </ul>
     </div>
     
@@ -199,7 +200,7 @@
             
             <strong>Start All Services (Windows):</strong>
             <div class="command-box">start.bat</div>
-            <p style="font-size: 8pt; margin-top: 0.1cm;">Launches Django development server (localhost:8000) with background task processing</p>
+            <p style="font-size: 8pt; margin-top: 0.1cm;">Launches Django development server (localhost:7777) with background task processing</p>
             
             <strong>Install Local LLM (Windows):</strong>
             <div class="command-box">install_local_llm.bat</div>
@@ -246,10 +247,10 @@
     
     <h2>Live URLs & Resources</h2>
     <ul style="margin-bottom: 0.2cm;">
-        <li><strong>Local Server:</strong> http://localhost:8000 (Django development server)</li>
-        <li><strong>Admin Panel:</strong> http://localhost:8000/admin (Django admin interface)</li>
-        <li><strong>API Root:</strong> http://localhost:8000/api/ (DRF browsable API)</li>
-        <li><strong>API Documentation:</strong> http://localhost:8000/api/docs/ (Swagger/OpenAPI)</li>
+        <li><strong>Local Server:</strong> http://localhost:7777 (Django development server)</li>
+        <li><strong>Admin Panel:</strong> http://localhost:7777/admin (Django admin interface)</li>
+        <li><strong>API Root:</strong> http://localhost:7777/api/ (DRF browsable API)</li>
+        <li><strong>API Documentation:</strong> http://localhost:7777/api/docs/ (Swagger/OpenAPI)</li>
         <li><strong>Ollama API:</strong> http://localhost:11434/api/tags (list installed models)</li>
         <li><strong>GitHub Repo:</strong> https://github.com/YorikNoir/retro-cassette-music</li>
     </ul>
@@ -396,7 +397,7 @@
             <li><strong>MAX_CONCURRENT_TASKS:</strong> Celery concurrency (default: 3)</li>
             <li><strong>OLLAMA_BASE_URL:</strong> Ollama API endpoint (default: http://localhost:11434)</li>
             <li><strong>OLLAMA_MODEL:</strong> Default Ollama model (default: llama3.2:3b)</li>
-            <li><strong>CORS_ALLOWED_ORIGINS:</strong> Frontend origins (default: http://localhost:8000)</li>
+            <li><strong>CORS_ALLOWED_ORIGINS:</strong> Frontend origins (default: http://localhost:7777)</li>
             <li><strong>JWT_ACCESS_TOKEN_LIFETIME:</strong> Minutes (default: 15)</li>
             <li><strong>JWT_REFRESH_TOKEN_LIFETIME:</strong> Days (default: 7)</li>
             <li><strong>HA_BASE_URL:</strong> Home Assistant URL (e.g., http://homeassistant.local:8123)</li>
@@ -475,6 +476,9 @@
     </div>
     
     <h2>Application Structure & Components</h2>
+    
+    <p style="font-size: 8pt; margin-bottom: 0.3cm;"><strong>Full-Stack Architecture:</strong> Django monolith with modular apps, Vanilla JS frontend, async task processing</p>
+    
     <div class="grid">
         <div class="box">
             <h3>Backend Django Apps</h3>
@@ -556,6 +560,11 @@
         </ul>
     </div>
     
+    <div style="margin-bottom: 0.4cm; margin-top: 0.4cm;">
+        <img src="images/Cassette%20Collection.webp" alt="Song Library Database" style="max-width: 100%; height: auto; border-radius: 4px; border: 1px solid #000;">
+        <p style="font-size: 7.5pt; margin-top: 0.15cm; text-align: center;"><em>Retro cassette UI displaying the relational database: songs, playlists, voting system, and user libraries</em></p>
+    </div>
+    
     <h2>AI Generation Pipeline</h2>
     <div class="box">
         <h3>Lyrics Generation Flow</h3>
@@ -572,19 +581,25 @@
                     <li><strong>Custom:</strong> User-defined endpoint with OpenAI format</li>
                 </ul>
             </li>
-            <li><strong>Step 5:</strong> Lyrics parsed from response, saved to Song model</li>
-            <li><strong>Step 6:</strong> Frontend polls or receives WebSocket notification</li>
+            <li><strong>Step 5:</strong> Lyrics parsed from response (JSON format), style description auto-generated, saved to Song model</li>
+            <li><strong>Step 6:</strong> Frontend polls or receives WebSocket notification with results</li>
         </ul>
         
         <h3>Music Generation (ACE-Step v1.5)</h3>
         <ul>
-            <li><strong>Model:</strong> acestep-v15-turbo (Transformer-based diffusion)</li>
+            <li><strong>Model:</strong> acestep-v15-turbo (Transformer-based diffusion, 5Hz latent representation)</li>
             <li><strong>Input:</strong> Text embeddings (Qwen3-Embedding-0.6B) + genre/mood tokens</li>
-            <li><strong>Process:</strong> Iterative denoising with 50 steps, 5Hz latent representation</li>
-            <li><strong>VAE Decoder:</strong> Converts 5Hz latents → 44.1kHz audio waveform</li>
-            <li><strong>Output:</strong> WAV file (32-bit float) saved to media/songs/</li>
+            <li><strong>Process:</strong> Iterative denoising with 50 steps, 5Hz → 44.1kHz conversion</li>
+            <li><strong>Duration:</strong> Automatic (natural length) or user-specified in seconds</li>
+            <li><strong>Output Format:</strong> WAV → MP3 conversion (192kbps, 2-5MB per song)</li>
             <li><strong>Inference Time:</strong> ~15-30s on GPU (RTX 3090), ~2-5min on CPU</li>
+            <li><strong>GPU Memory:</strong> ~12GB (logged on startup for diagnostics)</li>
         </ul>
+    </div>
+    
+    <div style="margin-bottom: 0.4cm; margin-top: 0.4cm;">
+        <img src="images/Create%20New%20Song.webp" alt="Song Creation Workflow" style="max-width: 100%; height: auto; border-radius: 4px; border: 1px solid #000;">
+        <p style="font-size: 7.5pt; margin-top: 0.15cm; text-align: center;"><em>User interface for creating songs with real-time generation feedback and progress tracking</em></p>
     </div>
     
     <h2>Security Architecture</h2>
@@ -606,36 +621,35 @@
                 <li><strong>Storage:</strong> localStorage (access) + httpOnly cookie (refresh)</li>
                 <li><strong>Endpoints:</strong> /api/auth/login, /api/auth/register, /api/auth/refresh</li>
                 <li><strong>Middleware:</strong> JWTAuthentication, IsAuthenticated permissions</li>
-                <li><strong>CORS:</strong> Configured for frontend origin (localhost:8000)</li>
+                <li><strong>CORS:</strong> Configured for frontend origin (localhost:7777)</li>
             </ul>
         </div>
     </div>
     
     <h2>Async Task Processing</h2>
     <div class="box">
-        <h3>Celery Configuration</h3>
+        <h3>Background Task Manager</h3>
         <ul>
-            <li><strong>Broker:</strong> Redis (localhost:6379, db=0)</li>
-            <li><strong>Backend:</strong> Redis result backend (db=1)</li>
-            <li><strong>Worker Pool:</strong> solo (Windows), prefork (Linux/Mac)</li>
-            <li><strong>Concurrency:</strong> MAX_CONCURRENT_TASKS setting (default: 3)</li>
-            <li><strong>Task Routing:</strong> generation.* → generation queue</li>
+            <li><strong>Implementation:</strong> Django built-in async task manager (no external queue)</li>
+            <li><strong>Concurrency:</strong> MAX_CONCURRENT_TASKS setting (default: 3 parallel tasks)</li>
             <li><strong>Task Serialization:</strong> JSON (security best practice)</li>
-            <li><strong>Result Expiry:</strong> 1 hour (configurable)</li>
+            <li><strong>Status Tracking:</strong> Endpoints for monitoring task progress</li>
+            <li><strong>Reliability:</strong> Minimal overhead, no Redis/Celery dependencies</li>
         </ul>
         
         <h3>Task Types</h3>
         <ul>
-            <li><strong>generate_lyrics_task:</strong> Async LLM inference (5-15s)</li>
-            <li><strong>generate_music_task:</strong> Async ACE-Step inference (15s-5min)</li>
-            <li><strong>cleanup_old_files_task:</strong> Periodic task to remove unpublished songs >30 days</li>
+            <li><strong>Lyrics Generation:</strong> Async LLM inference (1-6s depending on provider)</li>
+            <li><strong>Music Generation:</strong> Async ACE-Step inference (15-30s on GPU, 2-5min on CPU)</li>
+            <li><strong>File Cleanup:</strong> Periodic task to remove unpublished songs >30 days</li>
         </ul>
     </div>
     
     <div class="footer">
-        <strong>Retro Cassette Music - Technical Reference v1.0</strong><br>
-        Architecture: Django 5.0 + DRF + Celery + Redis + PyTorch + ACE-Step v1.5<br>
+        <strong>Retro Cassette Music - Technical Reference v2.0</strong><br>
+        Architecture: Django 5.0 + DRF + PyTorch + ACE-Step v1.5 + Home Assistant<br>
         LLM Support: Ollama (Llama 3.2), OpenAI (GPT-3.5/4), Comet API (Claude), Custom Endpoints<br>
+        Audio Format: MP3 (192kbps) | Task Processing: Built-in async manager | Port: 7777<br>
         Created: February 2026 | YorikNoir | MIT License
     </div>
 </body>

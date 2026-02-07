@@ -20,7 +20,7 @@ This application is a **full-stack AI music generation platform** built with Dja
 - **Multi-Provider LLM Architecture**: Flexible lyrics generation supporting Local (Ollama), OpenAI, Comet API, and custom endpoints
 - **Privacy-First Design**: Full offline operation with local LLM option (Llama 3.2) - no external API calls required
 - **Production-Grade Security**: Fernet encryption for API keys, JWT authentication, CSRF protection
-- **Scalable Task Processing**: Built-in async task manager for music generation with concurrent task management
+- **Background Processing**: Efficient async task manager for music & lyrics generation with configurable concurrency
 - **Retro-Modern UX**: Nostalgic cassette player interface optimized for both web and smart mirror displays
 
 ---
@@ -29,7 +29,7 @@ This application is a **full-stack AI music generation platform** built with Dja
 
 ### **Backend**
 - **Framework**: Django 5.0.1 + Django REST Framework 3.14.0
-- **Task Queue**: Background processing with Django task manager (async generation)
+- **Async Processing**: Built-in background task manager for music & lyrics generation (concurrent task support)
 - **AI/ML**: PyTorch 2.7.1 (CUDA 12.8), Transformers 4.57, ACE-Step v1.5 (music generation), Qwen3 Embedding
 - **Authentication**: JWT tokens (djangorestframework-simplejwt) + Home Assistant long-lived token support
 - **Database**: SQLite (development), PostgreSQL-ready (production scaling)
@@ -85,6 +85,9 @@ TTS announcement + Stream to room speakers → Add to room playlist
 - Party mode: Multi-room synchronized playlist across smart speakers
 - Context-aware defaults (room learns preferred genres/moods)
 
+![Den Smart Mirror - Room Control](images/den_smart_mirror.webp)
+*Smart mirror control interface in den: per-room playlist management and speaker selection*
+
 ![Bathroom Smart Mirror - Shower Karaoke Mode](images/bathroom_smart_display.webp)
 *Smart mirror in action: 7" display showing scrolling karaoke lyrics during morning shower routine*
 
@@ -104,11 +107,17 @@ TTS announcement + Stream to room speakers → Add to room playlist
 - **Model Selection**: Choose GPT-3.5/4, Claude Sonnet 4/Opus 4, or any OpenAI-compatible endpoint
 - **Encrypted Storage**: API keys protected with Fernet (AES-128-CBC) encryption at rest
 
+![Create New Song Interface](images/Create%20New%20Song.webp)
+*Song creation interface with genre/mood selection and real-time generation progress*
+
 ### **User Management & Social**
 - 👤 **Multi-User Accounts**: Separate libraries, preferences, and LLM provider settings per user
 - ⭐ **Voting System**: Upvote/downvote songs, discover community favorites
 - 📢 **Publishing**: Private-by-default with optional public sharing
 - 📊 **Statistics**: Track songs created, published count, community engagement
+
+![Cassette Collection - Song Library](images/Cassette%20Collection.webp)
+*Retro cassette player UI with full song library, voting, and playlist management*
 
 ### **Smart Home Integration**
 - 🏠 **Home Assistant API**: RESTful endpoints for automation workflows
@@ -146,7 +155,7 @@ setup.bat
 # Start Django development server
 start.bat
 
-# Visit http://localhost:8000
+# Visit http://localhost:7777
 ```
 
 **Linux/Mac:**
@@ -162,7 +171,7 @@ chmod +x setup.sh start.sh stop.sh
 # Start development server
 ./start.sh
 
-# Visit http://localhost:8000
+# Visit http://localhost:7777
 ```
 
 ### Optional: Install Local LLM (Privacy Mode)
@@ -329,7 +338,7 @@ flake8 .                                 # Lint
 python manage.py check --deploy          # Deployment checks
 ```
 
-### Useful Commands
+### Monitoring & Diagnostics
 ```bash
 # Django management
 python manage.py migrate                 # Apply migrations
@@ -337,10 +346,13 @@ python manage.py createsuperuser         # Admin account
 python manage.py shell                   # Interactive shell
 python manage.py collectstatic           # Gather static files
 
-# Ollama management
+# Ollama management (local LLM)
 ollama list                              # Installed models
 ollama pull llama3.2:3b                  # Download model
 ollama ps                                # Running models
+
+# GPU diagnostics (printed on startup)
+# Check Django logs for CUDA availability and memory allocation
 ```
 
 ---
@@ -356,10 +368,10 @@ ollama ps                                # Running models
 - [ ] Configure CORS (`CORS_ALLOWED_ORIGINS`)
 - [ ] Run `python manage.py collectstatic`
 - [ ] Run `python manage.py migrate`
-- [ ] Set up Gunicorn + Nginx
-- [ ] Configure systemd service for Django
+- [ ] Set up Gunicorn (4 workers) + Nginx reverse proxy
+- [ ] Configure systemd service for Django background tasks
 - [ ] Enable SSL with Let's Encrypt
-- [ ] Set up monitoring (Sentry, logging)
+- [ ] Set up monitoring (Sentry, CloudWatch, or ELK stack)
 
 ### Server Configuration
 
@@ -437,6 +449,19 @@ This project follows industry best practices:
 - **Documentation**: Docstrings (Google style), README, Technical docs
 
 ---
+
+## ⚡ Performance & Scalability
+
+### Generation Times
+- **Lyrics Generation**: 1-6s (Local Ollama) to 2-5s (Cloud LLMs)
+- **Music Generation**: 15-30s on NVIDIA GPU, 2-5min on CPU
+- **Total Time**: 20-40s typical for complete song on GPU
+- **Concurrent Tasks**: Up to 3 simultaneous generations (configurable)
+
+### Storage
+- **Models**: ~3.5GB (ACE-Step + Qwen3 Embedding)
+- **Per Song**: ~2-5MB (MP3 format, 192kbps)
+- **Typical Deployment**: 50-100GB media storage for 10k+ songs
 
 ## 📄 License
 

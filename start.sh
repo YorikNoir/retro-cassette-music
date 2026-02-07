@@ -45,7 +45,7 @@ echo "========================================="
 echo " Starting Django Development Server"
 echo "========================================="
 echo ""
-echo "Server will be available at: http://localhost:8000"
+echo "Server will be available at: http://localhost:7777"
 if [ "$DEBUG_MODE" = true ]; then
     echo "[DEBUG] Verbose logging enabled"
 fi
@@ -58,11 +58,7 @@ echo ""
 # Start Django server
 if [ "$DEBUG_MODE" = true ]; then
     export DJANGO_DEBUG_MODE=1
-    python manage.py runserver --verbosity 2
+    python manage.py runserver 7777 --verbosity 2
 else
-    python manage.py runserver
+    python manage.py runserver 7777
 fi
-echo ""
-echo "Make sure Redis is running:"
-echo "  redis-server"
-echo ""

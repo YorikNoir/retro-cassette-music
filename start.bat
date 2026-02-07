@@ -48,7 +48,7 @@ echo ========================================
 echo  Starting Django Development Server
 echo ========================================
 echo.
-echo Server will be available at: http://localhost:8000
+echo Server will be available at: http://localhost:7777
 if "%DEBUG_MODE%"=="True" echo [DEBUG] Verbose logging enabled
 echo.
 echo Background tasks will run in server process (no separate worker needed)
@@ -58,8 +58,7 @@ echo.
 
 if "%DEBUG_MODE%"=="True" (
     set DJANGO_DEBUG_MODE=1
-    python manage.py runserver --verbosity 2
+    python manage.py runserver 7777 --verbosity 2
 ) else (
-    python manage.py runserver
+    python manage.py runserver 7777
 )
-python manage.py runserver

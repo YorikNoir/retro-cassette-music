@@ -157,13 +157,21 @@ class SongsManager {
     createSongCard(song) {
         const statusClass = song.status || 'completed';
         
+        // Format duration as MM:SS or "auto"
+        let durationDisplay = 'auto';
+        if (song.duration) {
+            const minutes = Math.floor(song.duration / 60);
+            const seconds = song.duration % 60;
+            durationDisplay = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+        
         return `
             <div class="song-cassette" id="song-${song.id}">
                 <div class="song-status ${statusClass}">${statusClass}</div>
                 <div class="cassette-label">
                     <div class="song-title">${escapeHtml(song.title)}</div>
                     <div class="song-meta">
-                        ${song.genre} ${song.mood ? `• ${song.mood}` : ''} • ${song.duration}s
+                        ${song.genre} ${song.mood ? `• ${song.mood}` : ''} • ${durationDisplay}
                     </div>
                     <div class="song-description">
                         ${escapeHtml(song.description || song.lyrics?.substring(0, 100) || '')}
@@ -194,13 +202,32 @@ class SongsManager {
         const form = e.target;
         const formData = new FormData(form);
 
+        // Parse duration from MM:SS format or 'automatic'
+        const durationStr = formData.get('duration').trim().toLowerCase();
+        let duration = null;
+        
+        if (durationStr && durationStr !== 'automatic') {
+            const parts = durationStr.split(':');
+            if (parts.length === 2) {
+                const minutes = parseInt(parts[0]);
+                const seconds = parseInt(parts[1]);
+                duration = (minutes * 60) + seconds;
+                
+                // Validate range (10s to 180s)
+                if (duration < 10 || duration > 180) {
+                    showToast('Duration must be between 0:10 and 3:00', 'error');
+                    return;
+                }
+            }
+        }
+
         const songData = {
             title: formData.get('title'),
             lyrics: formData.get('lyrics'),
             description: formData.get('description'),
             genre: formData.get('genre'),
             mood: formData.get('mood'),
-            duration: parseInt(formData.get('duration')),
+            duration: duration,
             temperature: 1.0,
         };
 
@@ -237,7 +264,7 @@ class SongsManager {
             return;
         }
 
-        const prompt = `Write song lyrics for a ${genre} song titled "${title}"${mood ? ` with a ${mood} mood` : ''}.`;
+        const prompt = `Write song lyrics for a ${genre} song${mood ? ` with a ${mood} mood` : ''}. The song is about "${title}". DO NOT include the title "${title}" in the lyrics themselves. Also create a short style description with musical characteristics like genre, tempo, instruments, etc.`;
 
         try {
             showLoading(btn, true);
@@ -252,9 +279,20 @@ class SongsManager {
                 window.debug.log('[LYRICS] Received response:', result);
             }
             
-            if (result && result.status === 'success' && result.lyrics) {
-                lyricsTextarea.value = result.lyrics;
-                showToast('Lyrics generated successfully!', 'success');
+            if (result && result.status === 'success') {
+                if (result.lyrics) {
+                    lyricsTextarea.value = result.lyrics;
+                }
+                
+                // Populate description/style field if provided
+                if (result.style) {
+                    const descriptionTextarea = form.querySelector('[name="description"]');
+                    if (descriptionTextarea) {
+                        descriptionTextarea.value = result.style;
+                    }
+                }
+                
+                showToast('Lyrics and style generated successfully!', 'success');
             } else {
                 throw new Error(result?.message || 'No lyrics returned');
             }

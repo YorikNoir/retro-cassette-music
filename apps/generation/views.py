@@ -71,13 +71,22 @@ class GenerateLyricsView(APIView):
             
             lyrics = lyrics_gen.generate(full_prompt, temperature=temperature)
             
+            # Handle both dict and string responses (backwards compatibility)
+            if isinstance(lyrics, dict):
+                lyrics_text = lyrics.get('lyrics', '')
+                style_text = lyrics.get('style', '')
+            else:
+                lyrics_text = lyrics
+                style_text = ''
+            
             if settings.DEBUG:
-                print(f"[LYRICS] Generated {len(lyrics)} chars: '{lyrics[:100] if lyrics else '(EMPTY)'}'")
-                print(f"[LYRICS] Response: status=success, lyrics_len={len(lyrics)}")
+                print(f"[LYRICS] Generated {len(lyrics_text)} chars lyrics, {len(style_text)} chars style")
+                print(f"[LYRICS] Response: status=success, lyrics_len={len(lyrics_text)}, style_len={len(style_text)}")
             
             response_data = {
                 'status': 'success',
-                'lyrics': lyrics
+                'lyrics': lyrics_text,
+                'style': style_text
             }
             
             return Response(response_data)

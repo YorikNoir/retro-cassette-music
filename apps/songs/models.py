@@ -57,7 +57,7 @@ class Song(models.Model):
     # Generation parameters
     genre = models.CharField(max_length=50, choices=GENRE_CHOICES, default='pop')
     mood = models.CharField(max_length=50, choices=MOOD_CHOICES, blank=True)
-    duration = models.IntegerField(default=30, validators=[MinValueValidator(10), MaxValueValidator(180)])
+    duration = models.IntegerField(null=True, blank=True, validators=[MinValueValidator(10), MaxValueValidator(180)])
     temperature = models.FloatField(default=1.0, validators=[MinValueValidator(0.1), MaxValueValidator(2.0)])
     
     # Files

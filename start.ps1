@@ -43,11 +43,7 @@ Write-Host ""
 Write-Host "✅ Setup complete!" -ForegroundColor Green
 Write-Host ""
 Write-Host "To start the development server:" -ForegroundColor Cyan
-Write-Host "  python manage.py runserver" -ForegroundColor White
+Write-Host "  python manage.py runserver 7777" -ForegroundColor White
 Write-Host ""
-Write-Host "To start Celery worker (for song generation):" -ForegroundColor Cyan
-Write-Host "  celery -A config worker --loglevel=info --pool=solo" -ForegroundColor White
-Write-Host ""
-Write-Host "Make sure Redis is running:" -ForegroundColor Cyan
-Write-Host "  Download from: https://redis.io/download" -ForegroundColor White
+Write-Host "Server will be available at: http://localhost:7777" -ForegroundColor Yellow
 Write-Host ""
